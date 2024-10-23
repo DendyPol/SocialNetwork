@@ -1,16 +1,19 @@
 package ru.polovinko.socialnetwork.service;
 
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import ru.polovinko.socialnetwork.dto.CommentCreateDTO;
 import ru.polovinko.socialnetwork.dto.CommentDTO;
+import ru.polovinko.socialnetwork.dto.CommentSearchDTO;
 import ru.polovinko.socialnetwork.dto.CommentUpdateDTO;
 
-import java.util.List;
-
 public interface CommentService {
-  List<CommentDTO> findAllCommentsForPost(long postId);
+  Page<CommentDTO> search(CommentSearchDTO dto, Pageable pageable);
 
-  CommentDTO create(long postId, CommentDTO commentDTO);
+  CommentDTO create(CommentCreateDTO dto);
 
   void deleteById(long id);
 
-  CommentDTO update(long id, CommentUpdateDTO dto);
+  CommentDTO update(CommentUpdateDTO dto);
 }

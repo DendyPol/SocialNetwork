@@ -1,14 +1,14 @@
 package ru.polovinko.socialnetwork.controller;
 
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.ResponseEntity;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;
+import ru.polovinko.socialnetwork.dto.CommentCreateDTO;
 import ru.polovinko.socialnetwork.dto.CommentDTO;
+import ru.polovinko.socialnetwork.dto.CommentSearchDTO;
 import ru.polovinko.socialnetwork.dto.CommentUpdateDTO;
 import ru.polovinko.socialnetwork.service.CommentService;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/comments")
@@ -16,24 +16,23 @@ import java.util.List;
 public class CommentController {
   private final CommentService commentService;
 
-  @GetMapping("/post/{postId}")
-  public List<CommentDTO> findAllCommentsForPost(@PathVariable long postId) {
-    return commentService.findAllCommentsForPost(postId);
+  @GetMapping("/search")
+  public Page<CommentDTO> search(@RequestBody CommentSearchDTO dto, Pageable pageable) {
+    return commentService.search(dto, pageable);
   }
 
-  @PostMapping("/post/{postId}")
-  public CommentDTO create(@PathVariable long postId, @Valid @RequestBody CommentDTO dto) {
-    return commentService.create(postId, dto);
+  @PostMapping("/create")
+  public CommentDTO create(@RequestBody CommentCreateDTO dto) {
+    return commentService.create(dto);
   }
 
   @DeleteMapping("{id}")
-  public ResponseEntity<Void> delete(@PathVariable long id) {
+  public void delete(@PathVariable long id) {
     commentService.deleteById(id);
-    return ResponseEntity.noContent().build();
   }
 
-  @PutMapping("{id}")
-  public CommentDTO update(@PathVariable long id, @RequestBody CommentUpdateDTO dto) {
-    return commentService.update(id, dto);
+  @PutMapping
+  public CommentDTO update(@RequestBody CommentUpdateDTO dto) {
+    return commentService.update(dto);
   }
 }

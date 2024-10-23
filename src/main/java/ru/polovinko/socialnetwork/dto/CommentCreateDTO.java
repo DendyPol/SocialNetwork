@@ -8,10 +8,11 @@ import lombok.NoArgsConstructor;
 
 @Data
 @Builder
-@AllArgsConstructor
 @NoArgsConstructor
-public class CommentUpdateDTO {
-  private Long id;
+@AllArgsConstructor
+public class CommentCreateDTO {
   @Size(max = 300, message = "Comment cannot be longer than 300 characters")
   private String content;
+  private Long postId;
+  private Long userId;
 }

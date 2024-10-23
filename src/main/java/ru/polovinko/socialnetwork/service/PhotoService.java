@@ -11,5 +11,6 @@ public interface PhotoService {
   Optional<PhotoDTO> photoById(long id);
 
   PhotoDTO upload(PhotoDTO dto);
+
   void deleteById(long id);
 }

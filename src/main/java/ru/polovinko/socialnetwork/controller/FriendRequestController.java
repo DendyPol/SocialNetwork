@@ -2,6 +2,7 @@ package ru.polovinko.socialnetwork.controller;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
+import ru.polovinko.socialnetwork.dto.FriendRequestCreateDTO;
 import ru.polovinko.socialnetwork.dto.FriendRequestDTO;
 import ru.polovinko.socialnetwork.service.FriendRequestService;
 
@@ -13,23 +14,23 @@ import java.util.List;
 public class FriendRequestController {
   private final FriendRequestService friendRequestService;
 
-  @PostMapping("/{userid}/to/{friendId}")
-  public FriendRequestDTO sendFriendRequest(@PathVariable long userid, @PathVariable long friendId) {
-    return friendRequestService.sendFriendRequest(userid, friendId);
+  @PostMapping("/create")
+  public FriendRequestDTO create(@RequestBody FriendRequestCreateDTO dto) {
+    return friendRequestService.create(dto);
   }
 
-  @PutMapping("/{requestId}/accept")
-  public FriendRequestDTO acceptFriendRequest(@PathVariable long requestId) {
-    return friendRequestService.acceptFriendRequest(requestId);
+  @PutMapping("{id}")
+  public FriendRequestDTO update(@PathVariable long id) {
+    return friendRequestService.update(id);
   }
 
-  @DeleteMapping("/{requestId}/reject")
-  public void rejectFriendRequest(@PathVariable long requestId) {
-    friendRequestService.rejectFriendRequest(requestId);
+  @DeleteMapping("{id}")
+  public void delete(@PathVariable long id) {
+    friendRequestService.delete(id);
   }
 
-  @GetMapping("/user/{userId}")
-  public List<FriendRequestDTO> getFriendRequestFoUser(@PathVariable long userId) {
-    return friendRequestService.getFriendRequestForUser(userId);
+  @GetMapping("{id}")
+  public List<FriendRequestDTO> getFriendRequestFoUser(@PathVariable long id) {
+    return friendRequestService.getFriendRequestForUser(id);
   }
 }

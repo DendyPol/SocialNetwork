@@ -4,11 +4,12 @@ import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import ru.polovinko.socialnetwork.dto.FriendRequestCreateDTO;
 import ru.polovinko.socialnetwork.dto.FriendRequestDTO;
 import ru.polovinko.socialnetwork.exception.ObjectNotFoundException;
 import ru.polovinko.socialnetwork.model.FriendRequest;
+import ru.polovinko.socialnetwork.model.User;
 import ru.polovinko.socialnetwork.repository.FriendRequestRepository;
-import ru.polovinko.socialnetwork.repository.UserRepository;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -18,53 +19,50 @@ import java.util.stream.Collectors;
 @Transactional
 public class FriendRequestServiceImpl implements FriendRequestService {
   private final FriendRequestRepository friendRequestRepository;
-  private final UserRepository userRepository;
+  private final UserService userService;
   private final ModelMapper modelMapper;
 
   @Override
-  public FriendRequestDTO sendFriendRequest(long userId, long friendId) {
-    var user = userRepository.findById(userId)
-      .orElseThrow(() -> new ObjectNotFoundException(String.format("User with ID %d not found", userId)));
-    var friend = userRepository.findById(friendId)
-      .orElseThrow(() -> new ObjectNotFoundException(String.format("User with ID %d not found", friendId)));
+  public FriendRequestDTO create(FriendRequestCreateDTO dto) {
+    var userDTO = userService.findById(dto.getUserId()).get();
+    var friendDTO = userService.findById(dto.getFriendId()).get();
+    var user = modelMapper.map(userDTO, User.class);
+    var friend = modelMapper.map(friendDTO, User.class);
     if (friendRequestRepository.existsByUserAndFriend(user, friend)) {
       throw new IllegalStateException("Friend request already sent");
     }
-    var friendRequest = FriendRequest.builder()
-      .user(user)
-      .friend(friend)
-      .accepted(false)
-      .build();
+    var friendRequest = new FriendRequest();
+    friendRequest.setUser(user);
+    friendRequest.setFriend(friend);
+    friendRequest.setAccepted(false);
     friendRequestRepository.save(friendRequest);
     return modelMapper.map(friendRequest, FriendRequestDTO.class);
   }
 
   @Override
-  public FriendRequestDTO acceptFriendRequest(long requestId) {
-    var friendRequest = friendRequestRepository.findById(requestId)
-      .orElseThrow(() -> new ObjectNotFoundException(String.format("Friend request with ID %d not found", requestId)));
+  public FriendRequestDTO update(long id) {
+    var friendRequest = friendRequestRepository.findById(id)
+      .orElseThrow(() -> new ObjectNotFoundException(String.format("Friend request with ID %d not found", id)));
     friendRequest.setAccepted(true);
     var user = friendRequest.getUser();
     var friend = friendRequest.getFriend();
-    user.getFriends().add(friend);
-    friend.getFriends().add(user);
-    userRepository.save(user);
-    userRepository.save(friend);
+    userService.addFriend(user, friend);
+    userService.addFriend(friend, user);
     friendRequestRepository.save(friendRequest);
     return modelMapper.map(friendRequest, FriendRequestDTO.class);
   }
 
   @Override
-  public void rejectFriendRequest(long requestId) {
-    var friendRequest = friendRequestRepository.findById(requestId)
-      .orElseThrow(() -> new ObjectNotFoundException(String.format("Friend request with ID %d not found", requestId)));
+  public void delete(long id) {
+    var friendRequest = friendRequestRepository.findById(id)
+      .orElseThrow(() -> new ObjectNotFoundException(String.format("Friend request with ID %d not found", id)));
     friendRequestRepository.delete(friendRequest);
   }
 
   @Override
-  public List<FriendRequestDTO> getFriendRequestForUser(long userId) {
-    var user = userRepository.findById(userId)
-      .orElseThrow(() -> new ObjectNotFoundException(String.format("User with ID %d not found", userId)));
+  public List<FriendRequestDTO> getFriendRequestForUser(long id) {
+    var userDTO = userService.findById(id);
+    var user = modelMapper.map(userDTO, User.class);
     return friendRequestRepository.findByFriendAndAcceptedFalse(user).stream()
       .map(friendRequest -> modelMapper.map(friendRequest, FriendRequestDTO.class))
       .collect(Collectors.toList());

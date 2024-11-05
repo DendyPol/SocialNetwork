@@ -21,7 +21,7 @@ public class CommentController {
     return commentService.search(dto, pageable);
   }
 
-  @PostMapping("/create")
+  @PostMapping
   public CommentDTO create(@RequestBody CommentCreateDTO dto) {
     return commentService.create(dto);
   }

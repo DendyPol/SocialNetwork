@@ -2,33 +2,34 @@ package ru.polovinko.socialnetwork.service;
 
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import ru.polovinko.socialnetwork.dto.PhotoCreateDTO;
 import ru.polovinko.socialnetwork.dto.PhotoDTO;
+import ru.polovinko.socialnetwork.dto.PhotoSearchDTO;
 import ru.polovinko.socialnetwork.exception.ObjectNotFoundException;
 import ru.polovinko.socialnetwork.model.Photo;
+import ru.polovinko.socialnetwork.model.User;
 import ru.polovinko.socialnetwork.repository.PhotoRepository;
-import ru.polovinko.socialnetwork.repository.UserRepository;
+import ru.polovinko.socialnetwork.specification.PhotoSpecification;
 
-import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 @Transactional
 public class PhotoServiceImpl implements PhotoService {
   private final PhotoRepository photoRepository;
-  private final UserRepository userRepository;
+  private final UserService userService;
   private final ModelMapper modelMapper;
 
   @Override
-  public List<PhotoDTO> findAllPhotosForUser(long userId) {
-    var user = userRepository.findById(userId)
-      .orElseThrow(() -> new ObjectNotFoundException(String.format("User with ID %d not found", userId)));
-    return user.getGallery().stream()
-      .map(photo -> modelMapper.map(photo, PhotoDTO.class))
-      .collect(Collectors.toList());
+  public Page<PhotoDTO> search(PhotoSearchDTO dto, Pageable pageable) {
+    var spec = new PhotoSpecification(dto);
+    return photoRepository.findAll(spec, pageable)
+      .map(photo -> modelMapper.map(photo, PhotoDTO.class));
   }
 
   @Override
@@ -39,9 +40,9 @@ public class PhotoServiceImpl implements PhotoService {
   }
 
   @Override
-  public PhotoDTO upload(PhotoDTO dto) {
-    var user = userRepository.findById(dto.getUserId())
-      .orElseThrow(() -> new ObjectNotFoundException(String.format("User with ID %d not found", dto.getUserId())));
+  public PhotoDTO create(PhotoCreateDTO dto) {
+    var userDTO = userService.findById(dto.getUserId()).get();
+    var user = modelMapper.map(userDTO, User.class);
     var photo = modelMapper.map(dto, Photo.class);
     photo.setUser(user);
     var savedPhoto = photoRepository.save(photo);

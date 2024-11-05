@@ -1,23 +1,27 @@
 package ru.polovinko.socialnetwork.service;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import ru.polovinko.socialnetwork.dto.UserCreateDTO;
 import ru.polovinko.socialnetwork.dto.UserDTO;
+import ru.polovinko.socialnetwork.dto.UserSearchDTO;
 import ru.polovinko.socialnetwork.dto.UserUpdateDTO;
+import ru.polovinko.socialnetwork.model.User;
 
-import java.util.List;
 import java.util.Optional;
 
 public interface UserService {
-  List<UserDTO> findAll();
+  Page<UserDTO> search(UserSearchDTO dto, Pageable pageable);
 
   Optional<UserDTO> findById(long id);
 
-  UserDTO create(UserDTO userDTO);
+  UserDTO create(UserCreateDTO dto);
 
   void deleteById(long id);
 
-  List<UserDTO> getUserFriend(long userId);
-
   Optional<UserDTO> login(String username, String rawPassword);
 
-  UserDTO update(long id, UserUpdateDTO dto);
+  UserDTO update(UserUpdateDTO dto);
+
+  void addFriend(User user, User friend);
 }

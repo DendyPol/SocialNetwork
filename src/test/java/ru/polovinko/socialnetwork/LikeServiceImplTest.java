@@ -10,14 +10,16 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import ru.polovinko.socialnetwork.config.ContainerEnvironment;
+import ru.polovinko.socialnetwork.dto.LikeCreateDTO;
+import ru.polovinko.socialnetwork.dto.PhotoCreateDTO;
+import ru.polovinko.socialnetwork.dto.PostCreateDTO;
+import ru.polovinko.socialnetwork.dto.UserCreateDTO;
 import ru.polovinko.socialnetwork.exception.ObjectNotFoundException;
-import ru.polovinko.socialnetwork.model.Like;
-import ru.polovinko.socialnetwork.model.Post;
-import ru.polovinko.socialnetwork.model.User;
-import ru.polovinko.socialnetwork.repository.LikeRepository;
-import ru.polovinko.socialnetwork.repository.PostRepository;
 import ru.polovinko.socialnetwork.repository.UserRepository;
 import ru.polovinko.socialnetwork.service.LikeService;
+import ru.polovinko.socialnetwork.service.PhotoService;
+import ru.polovinko.socialnetwork.service.PostService;
+import ru.polovinko.socialnetwork.service.UserService;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -27,76 +29,117 @@ import static org.junit.jupiter.api.Assertions.*;
 @Testcontainers
 public class LikeServiceImplTest extends ContainerEnvironment implements WithAssertions {
   @Autowired
-  private LikeService service;
+  private LikeService likeService;
   @Autowired
-  private LikeRepository likeRepository;
+  private PostService postService;
   @Autowired
-  private PostRepository postRepository;
+  private UserService userService;
+  @Autowired
+  private PhotoService photoService;
   @Autowired
   private UserRepository userRepository;
 
   @BeforeEach
   void setUp() {
-    likeRepository.deleteAll();
     userRepository.deleteAll();
-    postRepository.deleteAll();
   }
 
   @Test
   void likePostShouldCreateLikeWhenPostAndUserExists() {
-    var post = postRepository.save(Post.builder().content("Test post").build());
-    var user = userRepository.save(User.builder()
+    var user = userService.create(UserCreateDTO.builder()
       .username("user")
+      .password("razDvaTri")
       .email("user@example.ru")
-      .build()
-    );
-    var like = service.likePost(post.getId(), user.getId());
+      .build());
+    var photo = photoService.create(PhotoCreateDTO.builder()
+      .url("http://example.ru/photo.jpg")
+      .userId(user.getId())
+      .build());
+    var post = postService.create(PostCreateDTO.builder()
+      .content("Test post")
+      .userId(user.getId())
+      .photoId(photo.getId())
+      .build());
+    var create = likeService.create(LikeCreateDTO.builder()
+      .postId(post.getId())
+      .userId(user.getId())
+      .build());
     assertAll(
-      () -> assertNotNull(like.getId()),
-      () -> assertEquals(post.getId(), like.getPostId()),
-      () -> assertEquals(user.getId(), like.getUserId()),
-      () -> assertTrue(likeRepository.existsByPostAndUser(post, user))
+      () -> assertNotNull(create.getId()),
+      () -> assertEquals(post.getId(), create.getPostId()),
+      () -> assertEquals(user.getId(), create.getUserId())
     );
   }
 
   @Test
   void likePostShouldThrowExceptionWhenLikeAlreadyExists() {
-    var post = postRepository.save(Post.builder().content("Test post").build());
-    var user = userRepository.save(User.builder()
+    var user = userService.create(UserCreateDTO.builder()
       .username("user")
+      .password("razDvaTri")
       .email("user@example.ru")
-      .build()
-    );
-    likeRepository.save(Like.builder().post(post).user(user).build());
+      .build());
+    var photo = photoService.create(PhotoCreateDTO.builder()
+      .url("http://example.ru/photo.jpg")
+      .userId(user.getId())
+      .build());
+    var post = postService.create(PostCreateDTO.builder()
+      .content("Test post")
+      .userId(user.getId())
+      .photoId(photo.getId())
+      .build());
+    var create = LikeCreateDTO.builder()
+      .postId(post.getId())
+      .userId(user.getId())
+      .build();
+    likeService.create(create);
     var exception = assertThrows(IllegalStateException.class, () ->
-      service.likePost(post.getId(), user.getId())
+      likeService.create(create)
     );
     assertEquals("User has already liked this post", exception.getMessage());
   }
 
   @Test
   void unlikePostShouldDeleteLikeWhenLikeExists() {
-    var post = postRepository.save(Post.builder().content("Test post").build());
-    var user = userRepository.save(User.builder()
+    var user = userService.create(UserCreateDTO.builder()
       .username("user")
+      .password("razDvaTri")
       .email("user@example.ru")
-      .build()
-    );
-    likeRepository.save(Like.builder().post(post).user(user).build());
-    service.unlikePost(post.getId(), user.getId());
-    assertFalse(likeRepository.existsByPostAndUser(post, user));
+      .build());
+    var photo = photoService.create(PhotoCreateDTO.builder()
+      .url("http://example.ru/photo.jpg")
+      .userId(user.getId())
+      .build());
+    var post = postService.create(PostCreateDTO.builder()
+      .content("Test post")
+      .userId(user.getId())
+      .photoId(photo.getId())
+      .build());
+    var create = likeService.create(LikeCreateDTO.builder()
+      .userId(user.getId())
+      .postId(post.getId())
+      .build());
+    likeService.deleteById(create.getId());
+    assertThrows(ObjectNotFoundException.class, () -> postService.findById(create.getId()).isPresent());
   }
 
   @Test
   void unlikePostShouldThrowExceptionWhenLikeDoesNotExists() {
-    var post = postRepository.save(Post.builder().content("New post").build());
-    var user = userRepository.save(User.builder()
+    var user = userService.create(UserCreateDTO.builder()
       .username("user")
+      .password("razDvaTri")
       .email("user@example.ru")
-      .build()
-    );
+      .build());
+    var photo = photoService.create(PhotoCreateDTO.builder()
+      .url("http://example.ru/photo.jpg")
+      .userId(user.getId())
+      .build());
+    var post = postService.create(PostCreateDTO.builder()
+      .content("Test post")
+      .userId(user.getId())
+      .photoId(photo.getId())
+      .build());
     var exception = assertThrows(ObjectNotFoundException.class, () ->
-      service.unlikePost(post.getId(), user.getId()));
+      likeService.deleteById(post.getId()));
     var expectedMessage = String.format("Like not found for the given Post(id=%d", post.getId());
     var actualMessage = exception.getMessage();
     assertTrue(actualMessage.contains(expectedMessage));
@@ -106,7 +149,7 @@ public class LikeServiceImplTest extends ContainerEnvironment implements WithAss
   @Test
   void getLikesCountForPostShouldThrowExceptionWhenPostDoesNotExist() {
     var exception = assertThrows(ObjectNotFoundException.class, () ->
-      service.getLikesCountForPost(999L));
+      likeService.getLikesCountForPost(999L));
     assertEquals("Post with ID 999 not found", exception.getMessage());
   }
 }

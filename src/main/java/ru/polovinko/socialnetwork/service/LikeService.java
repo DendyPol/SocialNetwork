@@ -1,11 +1,12 @@
 package ru.polovinko.socialnetwork.service;
 
+import ru.polovinko.socialnetwork.dto.LikeCreateDTO;
 import ru.polovinko.socialnetwork.dto.LikeDTO;
 
 public interface LikeService {
-  LikeDTO likePost(long postId, long userId);
+  LikeDTO create(LikeCreateDTO dto);
 
-  void unlikePost(long postId, long userId);
+  void deleteById(long id);
 
   int getLikesCountForPost(long postId);
 }

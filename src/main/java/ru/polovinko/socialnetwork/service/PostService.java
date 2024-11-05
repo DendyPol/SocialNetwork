@@ -1,19 +1,22 @@
 package ru.polovinko.socialnetwork.service;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import ru.polovinko.socialnetwork.dto.PostCreateDTO;
 import ru.polovinko.socialnetwork.dto.PostDTO;
+import ru.polovinko.socialnetwork.dto.PostSearchDTO;
 import ru.polovinko.socialnetwork.dto.PostUpdateDTO;
 
-import java.util.List;
 import java.util.Optional;
 
 public interface PostService {
-  List<PostDTO> findAll();
+  Page<PostDTO> search(PostSearchDTO dto, Pageable pageable);
 
   Optional<PostDTO> findById(long id);
 
-  PostDTO create(PostDTO postDTO);
+  PostDTO create(PostCreateDTO dto);
 
   void deleteById(long id);
 
-  PostDTO update(long id, PostUpdateDTO dto);
+  PostDTO update(PostUpdateDTO dto);
 }

@@ -7,10 +7,9 @@ import lombok.NoArgsConstructor;
 
 @Data
 @Builder
-@AllArgsConstructor
 @NoArgsConstructor
-public class PostUpdateDTO {
-  private Long id;
-  private String content;
-  private Long photoId;
+@AllArgsConstructor
+public class UserSearchDTO {
+  private String username;
+  private Long friendId;
 }

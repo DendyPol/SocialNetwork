@@ -1,16 +1,19 @@
 package ru.polovinko.socialnetwork.service;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import ru.polovinko.socialnetwork.dto.PhotoCreateDTO;
 import ru.polovinko.socialnetwork.dto.PhotoDTO;
+import ru.polovinko.socialnetwork.dto.PhotoSearchDTO;
 
-import java.util.List;
 import java.util.Optional;
 
 public interface PhotoService {
-  List<PhotoDTO> findAllPhotosForUser(long userId);
+  Page<PhotoDTO> search(PhotoSearchDTO dto, Pageable pageable);
 
   Optional<PhotoDTO> photoById(long id);
 
-  PhotoDTO upload(PhotoDTO dto);
+  PhotoDTO create(PhotoCreateDTO dto);
 
   void deleteById(long id);
 }

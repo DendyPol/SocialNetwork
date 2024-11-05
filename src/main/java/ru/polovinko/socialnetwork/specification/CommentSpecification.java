@@ -7,8 +7,6 @@ import ru.polovinko.socialnetwork.dto.CommentSearchDTO;
 import ru.polovinko.socialnetwork.model.Comment;
 import ru.polovinko.socialnetwork.model.Post;
 
-import java.util.ArrayList;
-
 @RequiredArgsConstructor
 public class CommentSpecification implements Specification<Comment> {
   private final CommentSearchDTO dto;
@@ -24,7 +22,7 @@ public class CommentSpecification implements Specification<Comment> {
       res = builder.and(res, builder.equal(post.get("id"), dto.getPostId()));
     }
     if (dto.getUsername() != null && !dto.getUsername().isEmpty()) {
-      res = builder.and(res, builder.equal(root.get("user").get("name"), dto.getUsername()));
+      res = builder.and(res, builder.equal(root.get("user").get("username"), dto.getUsername()));
     }
     query.groupBy(root.get("id"));
     return res;

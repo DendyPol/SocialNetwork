@@ -5,8 +5,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
 public class SocialnetworkApplication {
-
-	public static void main(String[] args) {
-		SpringApplication.run(SocialnetworkApplication.class, args);
-	}
+  public static void main(String[] args) {
+    SpringApplication.run(SocialnetworkApplication.class, args);
+  }
 }

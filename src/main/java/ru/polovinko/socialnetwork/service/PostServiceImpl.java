@@ -2,34 +2,37 @@ package ru.polovinko.socialnetwork.service;
 
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import ru.polovinko.socialnetwork.dto.PostCreateDTO;
 import ru.polovinko.socialnetwork.dto.PostDTO;
+import ru.polovinko.socialnetwork.dto.PostSearchDTO;
 import ru.polovinko.socialnetwork.dto.PostUpdateDTO;
 import ru.polovinko.socialnetwork.exception.ObjectNotFoundException;
+import ru.polovinko.socialnetwork.model.Photo;
 import ru.polovinko.socialnetwork.model.Post;
-import ru.polovinko.socialnetwork.repository.PhotoRepository;
+import ru.polovinko.socialnetwork.model.User;
 import ru.polovinko.socialnetwork.repository.PostRepository;
-import ru.polovinko.socialnetwork.repository.UserRepository;
+import ru.polovinko.socialnetwork.specification.PostSpecification;
 
-import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 @Transactional
 public class PostServiceImpl implements PostService {
   private final PostRepository postRepository;
-  private final UserRepository userRepository;
-  private final PhotoRepository photoRepository;
+  private final UserService userService;
+  private final PhotoService photoService;
   private final ModelMapper modelMapper;
 
   @Override
-  public List<PostDTO> findAll() {
-    return postRepository.findAll().stream()
-      .map(post -> modelMapper.map(post, PostDTO.class))
-      .collect(Collectors.toList());
+  public Page<PostDTO> search(PostSearchDTO dto, Pageable pageable) {
+    var spec = new PostSpecification(dto);
+    return postRepository.findAll(spec, pageable)
+      .map(post -> modelMapper.map(post, PostDTO.class));
   }
 
   @Override
@@ -40,15 +43,15 @@ public class PostServiceImpl implements PostService {
   }
 
   @Override
-  public PostDTO create(PostDTO dto) {
-    var user = userRepository.findById(dto.getUserId())
-      .orElseThrow(() -> new ObjectNotFoundException(String.format("User with ID %d not found", dto.getUserId())));
-    var photo = Optional.ofNullable(dto.getPhotoId())
-      .flatMap(photoRepository::findById)
-      .orElseThrow(() -> new ObjectNotFoundException(String.format("Photo with ID %d not found", dto.getPhotoId())));
-    var post = modelMapper.map(dto, Post.class);
+  public PostDTO create(PostCreateDTO dto) {
+    var userDTO = userService.findById(dto.getUserId()).get();
+    var photoDTO = photoService.photoById(dto.getPhotoId()).get();
+    var user = modelMapper.map(userDTO, User.class);
+    var photo = modelMapper.map(photoDTO, Photo.class);
+    var post = new Post();
     post.setUser(user);
     post.setPhoto(photo);
+    post.setContent(dto.getContent());
     return modelMapper.map(postRepository.save(post), PostDTO.class);
   }
 
@@ -60,13 +63,13 @@ public class PostServiceImpl implements PostService {
   }
 
   @Override
-  public PostDTO update(long id, PostUpdateDTO dto) {
-    var post = postRepository.findById(id)
-      .orElseThrow(() -> new ObjectNotFoundException(String.format("Post with ID %d not found", id)));
+  public PostDTO update(PostUpdateDTO dto) {
+    var post = postRepository.findById(dto.getId())
+      .orElseThrow(() -> new ObjectNotFoundException(String.format("Post with ID %d not found", dto.getId())));
     Optional.ofNullable(dto.getContent()).ifPresent(post::setContent);
     Optional.ofNullable(dto.getPhotoId()).ifPresent(photoId -> {
-      var photo = photoRepository.findById(photoId)
-        .orElseThrow(() -> new ObjectNotFoundException(String.format("Photo with ID %d not found", photoId)));
+      var photoDTO = photoService.photoById(dto.getPhotoId()).get();
+      var photo = modelMapper.map(photoDTO, Photo.class);
       post.setPhoto(photo);
     });
     return modelMapper.map(postRepository.save(post), PostDTO.class);

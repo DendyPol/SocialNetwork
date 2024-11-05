@@ -2,6 +2,7 @@ package ru.polovinko.socialnetwork.controller;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
+import ru.polovinko.socialnetwork.dto.LikeCreateDTO;
 import ru.polovinko.socialnetwork.dto.LikeDTO;
 import ru.polovinko.socialnetwork.service.LikeService;
 
@@ -11,18 +12,18 @@ import ru.polovinko.socialnetwork.service.LikeService;
 public class LikeController {
   private final LikeService likeService;
 
-  @PostMapping("/{postId}/users/{userId}")
-  public LikeDTO likePost(@PathVariable long postId, @PathVariable long userId) {
-    return likeService.likePost(postId, userId);
+  @PostMapping("/create")
+  public LikeDTO create(@RequestBody LikeCreateDTO dto) {
+    return likeService.create(dto);
   }
 
-  @GetMapping("/{postId}/count")
-  public int getLikesCount(@PathVariable long postId) {
-    return likeService.getLikesCountForPost(postId);
+  @GetMapping("{id}")
+  public int getLikesCount(@PathVariable long id) {
+    return likeService.getLikesCountForPost(id);
   }
 
-  @DeleteMapping("/{postId}/users/{userId}")
-  public void unlikePost(@PathVariable long postId, @PathVariable long userId) {
-    likeService.unlikePost(postId, userId);
+  @DeleteMapping("{id}")
+  public void delete(@PathVariable long id) {
+    likeService.deleteById(id);
   }
 }

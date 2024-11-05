@@ -1,14 +1,13 @@
 package ru.polovinko.socialnetwork.controller;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;
-import ru.polovinko.socialnetwork.dto.LoginRequestDTO;
-import ru.polovinko.socialnetwork.dto.UserDTO;
-import ru.polovinko.socialnetwork.dto.UserUpdateDTO;
-import ru.polovinko.socialnetwork.exception.ObjectNotFoundException;
+import ru.polovinko.socialnetwork.dto.*;
 import ru.polovinko.socialnetwork.service.UserService;
 
-import java.util.List;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/v1/users")
@@ -16,19 +15,18 @@ import java.util.List;
 public class UserController {
   private final UserService userService;
 
-  @GetMapping
-  public List<UserDTO> findAll() {
-    return userService.findAll();
+  @GetMapping("/search")
+  public Page<UserDTO> search(@RequestBody UserSearchDTO dto, Pageable pageable) {
+    return userService.search(dto, pageable);
   }
 
   @GetMapping("{id}")
-  public UserDTO findById(@PathVariable long id) {
-    return userService.findById(id)
-      .orElseThrow(() -> new ObjectNotFoundException(String.format("User with ID %d not found", id)));
+  public Optional<UserDTO> findById(@PathVariable long id) {
+    return userService.findById(id);
   }
 
   @PostMapping
-  public UserDTO createUser(@RequestBody UserDTO dto) {
+  public UserDTO createUser(@RequestBody UserCreateDTO dto) {
     return userService.create(dto);
   }
 
@@ -43,13 +41,8 @@ public class UserController {
     userService.deleteById(id);
   }
 
-  @GetMapping("/{userId}/friends")
-  public List<UserDTO> getUserFriends(@PathVariable long userId) {
-    return userService.getUserFriend(userId);
-  }
-
-  @PutMapping("{id}")
-  public UserDTO update(@PathVariable long id, @RequestBody UserUpdateDTO dto) {
-    return userService.update(id, dto);
+  @PutMapping
+  public UserDTO update(@RequestBody UserUpdateDTO dto) {
+    return userService.update(dto);
   }
 }

@@ -10,10 +10,12 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import ru.polovinko.socialnetwork.config.ContainerEnvironment;
-import ru.polovinko.socialnetwork.model.User;
+import ru.polovinko.socialnetwork.dto.FriendRequestCreateDTO;
+import ru.polovinko.socialnetwork.dto.UserCreateDTO;
 import ru.polovinko.socialnetwork.repository.FriendRequestRepository;
 import ru.polovinko.socialnetwork.repository.UserRepository;
 import ru.polovinko.socialnetwork.service.FriendRequestService;
+import ru.polovinko.socialnetwork.service.UserService;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -28,91 +30,105 @@ public class FriendRequestServiceImplTest extends ContainerEnvironment implement
   private UserRepository userRepository;
   @Autowired
   private FriendRequestRepository friendRequestRepository;
+  @Autowired
+  private UserService userService;
 
   @BeforeEach
   void setUp() {
-    friendRequestRepository.deleteAll();
     userRepository.deleteAll();
   }
 
   @Test
   void sendFriendRequestShouldSendRequestWhenUsersAreValid() {
-    var user = userRepository.save(User.builder()
+    var user = userService.create(UserCreateDTO.builder()
       .username("user")
       .email("user@example.ru")
       .password("password")
       .build()
     );
-    var friend = userRepository.save(User.builder()
+    var friend = userService.create(UserCreateDTO.builder()
       .username("friend")
       .email("friend@example.ru")
       .password("password")
       .build()
     );
-    var request = service.sendFriendRequest(user.getId(), friend.getId());
+    var create = service.create(FriendRequestCreateDTO.builder()
+      .userId(user.getId())
+      .friendId(friend.getId())
+      .build());
     assertAll(
-      () -> assertNotNull(request),
-      () -> assertEquals(user.getId(), request.getUserId()),
-      () -> assertEquals(friend.getId(), request.getFriendId()),
-      () -> assertFalse(request.isAccepted())
+      () -> assertNotNull(create),
+      () -> assertEquals(user.getId(), create.getUserId()),
+      () -> assertEquals(friend.getId(), create.getFriendId()),
+      () -> assertFalse(create.isAccepted())
     );
   }
 
   @Test
   void sendFriendRequestShouldThrowExceptionWhenRequestAlreadyExists() {
-    var user = userRepository.save(User.builder()
+    var user = userService.create(UserCreateDTO.builder()
       .username("user")
       .email("user@example.ru")
       .password("password")
       .build()
     );
-    var friend = userRepository.save(User.builder()
+    var friend = userService.create(UserCreateDTO.builder()
       .username("friend")
       .email("friend@exmaple.ru")
       .password("password")
       .build()
     );
-    service.sendFriendRequest(user.getId(), friend.getId());
+    var create = FriendRequestCreateDTO.builder()
+      .userId(user.getId())
+      .friendId(friend.getId())
+      .build();
+    service.create(create);
     var exception = assertThrows(IllegalStateException.class, () ->
-      service.sendFriendRequest(user.getId(), friend.getId()));
+      service.create(create));
     assertTrue(exception.getMessage().contains("Friend request already sent"));
   }
 
   @Test
   void acceptFriendRequestShouldAcceptRequestWhenRequestExists() {
-    var user = userRepository.save(User.builder()
+    var user = userService.create(UserCreateDTO.builder()
       .username("user")
       .email("user@example.ru")
       .password("password")
       .build()
     );
-    var friend = userRepository.save(User.builder()
+    var friend = userService.create(UserCreateDTO.builder()
       .username("friend")
       .email("friend@example.ru")
       .password("password1")
       .build()
     );
-    var request = service.sendFriendRequest(user.getId(), friend.getId());
-    var acceptedRequest = service.acceptFriendRequest(request.getId());
+    var create = service.create(FriendRequestCreateDTO.builder()
+      .userId(user.getId())
+      .friendId(friend.getId())
+      .build());
+    var acceptedRequest = service.update(create.getId());
     assertTrue(acceptedRequest.isAccepted());
   }
 
   @Test
   void rejectFriendRequestShouldDeleteRequestWhenRequestExists() {
-    var user = userRepository.save(User.builder()
+    var user = userService.create(UserCreateDTO.builder()
       .username("user")
       .email("user@exmapler.ru")
       .password("password")
       .build()
     );
-    var friend = userRepository.save(User.builder()
+    var friend = userService.create(UserCreateDTO.builder()
       .username("friend")
       .email("friend@exmaple.ru")
       .password("password")
       .build()
     );
-    var request = service.sendFriendRequest(user.getId(), friend.getId());
-    service.rejectFriendRequest(request.getId());
-    assertTrue(friendRequestRepository.findById(request.getId()).isEmpty());
+    var create = service.create(FriendRequestCreateDTO.builder()
+      .userId(user.getId())
+      .friendId(friend.getId())
+      .build());
+    service.delete(create.getId());
+    assertTrue(friendRequestRepository.findById(create.getId()).isEmpty());
   }
 }

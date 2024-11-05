@@ -1,12 +1,15 @@
 package ru.polovinko.socialnetwork.controller;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;
+import ru.polovinko.socialnetwork.dto.PhotoCreateDTO;
 import ru.polovinko.socialnetwork.dto.PhotoDTO;
-import ru.polovinko.socialnetwork.exception.ObjectNotFoundException;
+import ru.polovinko.socialnetwork.dto.PhotoSearchDTO;
 import ru.polovinko.socialnetwork.service.PhotoService;
 
-import java.util.List;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/v1/photos")
@@ -14,20 +17,19 @@ import java.util.List;
 public class PhotoController {
   private final PhotoService photoService;
 
-  @GetMapping("/user/{userId}")
-  public List<PhotoDTO> findAllPhotosById(@PathVariable long userId) {
-    return photoService.findAllPhotosForUser(userId);
+  @GetMapping("/search")
+  public Page<PhotoDTO> search(@RequestBody PhotoSearchDTO dto, Pageable pageable) {
+    return photoService.search(dto, pageable);
   }
 
   @GetMapping("{id}")
-  public PhotoDTO photoById(@PathVariable long id) {
-    return photoService.photoById(id)
-      .orElseThrow(() -> new ObjectNotFoundException(String.format("Photo with ID %d not found", id)));
+  public Optional<PhotoDTO> photoById(@PathVariable long id) {
+    return photoService.photoById(id);
   }
 
   @PostMapping
-  public PhotoDTO uploadPhoto(@RequestBody PhotoDTO dto) {
-    return photoService.upload(dto);
+  public PhotoDTO create(@RequestBody PhotoCreateDTO dto) {
+    return photoService.create(dto);
   }
 
   @DeleteMapping("{id}")

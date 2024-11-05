@@ -13,15 +13,13 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import ru.polovinko.socialnetwork.config.ContainerEnvironment;
-import ru.polovinko.socialnetwork.dto.CommentCreateDTO;
-import ru.polovinko.socialnetwork.dto.CommentDTO;
-import ru.polovinko.socialnetwork.dto.CommentSearchDTO;
-import ru.polovinko.socialnetwork.dto.CommentUpdateDTO;
-import ru.polovinko.socialnetwork.model.Comment;
-import ru.polovinko.socialnetwork.model.Post;
+import ru.polovinko.socialnetwork.dto.*;
 import ru.polovinko.socialnetwork.repository.CommentRepository;
-import ru.polovinko.socialnetwork.repository.PostRepository;
+import ru.polovinko.socialnetwork.repository.UserRepository;
 import ru.polovinko.socialnetwork.service.CommentService;
+import ru.polovinko.socialnetwork.service.PhotoService;
+import ru.polovinko.socialnetwork.service.PostService;
+import ru.polovinko.socialnetwork.service.UserService;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -31,26 +29,52 @@ import static org.junit.jupiter.api.Assertions.*;
 @Testcontainers
 public class CommentServiceImplTest extends ContainerEnvironment implements WithAssertions {
   @Autowired
-  private CommentService service;
+  private CommentService commentService;
   @Autowired
   private CommentRepository commentRepository;
   @Autowired
-  private PostRepository postRepository;
+  private UserService userService;
+  @Autowired
+  private PhotoService photoService;
+  @Autowired
+  private PostService postService;
+  @Autowired
+  private UserRepository userRepository;
 
   @BeforeEach
   void setUp() {
-    commentRepository.deleteAll();
-    postRepository.deleteAll();
+    userRepository.deleteAll();
   }
 
   @Test
   void findAllCommentsForPostShouldReturnCommentsWhenPostExists() {
-    var post = postRepository.save(Post.builder().content("Test post").build());
-    var commentOne = commentRepository.save(Comment.builder().content("Comment One").post(post).build());
-    var commentTwo = commentRepository.save(Comment.builder().content("Comment Two").post(post).build());
+    var user = userService.create(UserCreateDTO.builder()
+      .username("username")
+      .password("password")
+      .email("email@email.ru")
+      .build());
+    var photo = photoService.create(PhotoCreateDTO.builder()
+      .url("http://example.ru/photo.jpg")
+      .userId(user.getId())
+      .build());
+    var post = postService.create(PostCreateDTO.builder()
+      .userId(user.getId())
+      .photoId(photo.getId())
+      .content("Test post")
+      .build());
+    var commentOne = commentService.create(CommentCreateDTO.builder()
+      .userId(user.getId())
+      .postId(post.getId())
+      .content("Comment One")
+      .build());
+    var commentTwo = commentService.create(CommentCreateDTO.builder()
+      .userId(user.getId())
+      .postId(post.getId())
+      .content("Comment Two")
+      .build());
     Pageable pageable = PageRequest.of(0, 10);
     var searchDTO = new CommentSearchDTO();
-    Page<CommentDTO> commentsPage = service.search(searchDTO, pageable);
+    Page<CommentDTO> commentsPage = commentService.search(searchDTO, pageable);
     var comment = commentsPage.getContent();
     assertEquals(2, comment.size());
     assertEquals(commentOne.getContent(), comment.get(0).getContent());
@@ -59,12 +83,26 @@ public class CommentServiceImplTest extends ContainerEnvironment implements With
 
   @Test
   void createShouldCreateCommentWhenPostExists() {
-    var post = postRepository.save(Post.builder().content("Test post").build());
+    var user = userService.create(UserCreateDTO.builder()
+      .username("username")
+      .password("password")
+      .email("email@email.ru")
+      .build());
+    var photo = photoService.create(PhotoCreateDTO.builder()
+      .url("http://example.ru/photo.jpg")
+      .userId(user.getId())
+      .build());
+    var post = postService.create(PostCreateDTO.builder()
+      .userId(user.getId())
+      .photoId(photo.getId())
+      .content("Test post")
+      .build());
     var comment = CommentCreateDTO.builder()
+      .userId(user.getId())
       .content("New comment")
       .postId(post.getId())
       .build();
-    var createdComment = service.create(comment);
+    var createdComment = commentService.create(comment);
     assertNotNull(createdComment.getId());
     assertEquals(comment.getContent(), createdComment.getContent());
     assertTrue(commentRepository.existsById(createdComment.getId()));
@@ -72,21 +110,55 @@ public class CommentServiceImplTest extends ContainerEnvironment implements With
 
   @Test
   void deleteByIdShouldDeleteCommentWhenCommentExists() {
-    var post = postRepository.save(Post.builder().content("Test post").build());
-    var comment = commentRepository.save(Comment.builder().content("New comment").post(post).build());
-    service.deleteById(comment.getId());
+    var user = userService.create(UserCreateDTO.builder()
+      .username("username")
+      .password("password")
+      .email("email@email.ru")
+      .build());
+    var photo = photoService.create(PhotoCreateDTO.builder()
+      .url("http://example.ru/photo.jpg")
+      .userId(user.getId())
+      .build());
+    var post = postService.create(PostCreateDTO.builder()
+      .userId(user.getId())
+      .photoId(photo.getId())
+      .content("Test post")
+      .build());
+    var comment = commentService.create(CommentCreateDTO.builder()
+      .userId(user.getId())
+      .content("New comment")
+      .postId(post.getId())
+      .build());
+    commentService.deleteById(comment.getId());
     assertFalse(commentRepository.existsById(comment.getId()));
   }
 
   @Test
   void updateShouldUpdateCommentWhenCommentExists() {
-    var post = postRepository.save(Post.builder().content("Test post").build());
-    var comment = commentRepository.save(Comment.builder().content("New comment").post(post).build());
+    var user = userService.create(UserCreateDTO.builder()
+      .username("username")
+      .password("password")
+      .email("email@email.ru")
+      .build());
+    var photo = photoService.create(PhotoCreateDTO.builder()
+      .url("http://example.ru/photo.jpg")
+      .userId(user.getId())
+      .build());
+    var post = postService.create(PostCreateDTO.builder()
+      .userId(user.getId())
+      .photoId(photo.getId())
+      .content("Test post")
+      .build());
+    var comment = commentService.create(CommentCreateDTO.builder()
+      .userId(user.getId())
+      .content("New comment")
+      .postId(post.getId())
+      .build());
     var updateComment = CommentUpdateDTO.builder()
       .id(comment.getId())
       .content("Update comment")
       .build();
-    var updatedComment = service.update(updateComment);
+    var updatedComment = commentService.update(updateComment);
     assertEquals(updateComment.getContent(), updatedComment.getContent());
   }
 }

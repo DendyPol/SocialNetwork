@@ -11,8 +11,9 @@ import ru.polovinko.socialnetwork.dto.CommentSearchDTO;
 import ru.polovinko.socialnetwork.dto.CommentUpdateDTO;
 import ru.polovinko.socialnetwork.exception.ObjectNotFoundException;
 import ru.polovinko.socialnetwork.model.Comment;
+import ru.polovinko.socialnetwork.model.Post;
+import ru.polovinko.socialnetwork.model.User;
 import ru.polovinko.socialnetwork.repository.CommentRepository;
-import ru.polovinko.socialnetwork.repository.PostRepository;
 import ru.polovinko.socialnetwork.specification.CommentSpecification;
 
 import java.util.Optional;
@@ -21,7 +22,8 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class CommentServiceImpl implements CommentService {
   private final CommentRepository commentRepository;
-  private final PostRepository postRepository;
+  private final PostService postService;
+  private final UserService userService;
   private final ModelMapper modelMapper;
 
   @Override
@@ -33,12 +35,14 @@ public class CommentServiceImpl implements CommentService {
 
   @Override
   public CommentDTO create(CommentCreateDTO dto) {
-    var post = postRepository.findById(dto.getPostId())
-      .orElseThrow(() -> new ObjectNotFoundException(String.format("Post with ID %d not found", dto.getPostId())));
-    var comment = Comment.builder()
-      .content(dto.getContent())
-      .post(post)
-      .build();
+    var userDTO = userService.findById(dto.getUserId()).get();
+    var user = modelMapper.map(userDTO, User.class);
+    var postDTO = postService.findById(dto.getPostId()).get();
+    var post = modelMapper.map(postDTO, Post.class);
+    var comment = new Comment();
+    comment.setUser(user);
+    comment.setContent(dto.getContent());
+    comment.setPost(post);
     return modelMapper.map(commentRepository.save(comment), CommentDTO.class);
   }
 

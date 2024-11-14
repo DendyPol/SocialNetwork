@@ -1,12 +1,10 @@
 package ru.polovinko.socialnetwork;
 
 import org.assertj.core.api.WithAssertions;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.test.context.ActiveProfiles;
@@ -15,7 +13,6 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 import ru.polovinko.socialnetwork.config.ContainerEnvironment;
 import ru.polovinko.socialnetwork.dto.*;
 import ru.polovinko.socialnetwork.repository.CommentRepository;
-import ru.polovinko.socialnetwork.repository.UserRepository;
 import ru.polovinko.socialnetwork.service.CommentService;
 import ru.polovinko.socialnetwork.service.PhotoService;
 import ru.polovinko.socialnetwork.service.PostService;
@@ -38,13 +35,6 @@ public class CommentServiceImplTest extends ContainerEnvironment implements With
   private PhotoService photoService;
   @Autowired
   private PostService postService;
-  @Autowired
-  private UserRepository userRepository;
-
-  @BeforeEach
-  void setUp() {
-    userRepository.deleteAll();
-  }
 
   @Test
   void findAllCommentsForPostShouldReturnCommentsWhenPostExists() {
@@ -72,13 +62,16 @@ public class CommentServiceImplTest extends ContainerEnvironment implements With
       .postId(post.getId())
       .content("Comment Two")
       .build());
+    var searchDTO = CommentSearchDTO.builder()
+      .postId(post.getId())
+      .build();
     Pageable pageable = PageRequest.of(0, 10);
-    var searchDTO = new CommentSearchDTO();
-    Page<CommentDTO> commentsPage = commentService.search(searchDTO, pageable);
-    var comment = commentsPage.getContent();
-    assertEquals(2, comment.size());
-    assertEquals(commentOne.getContent(), comment.get(0).getContent());
-    assertEquals(commentTwo.getContent(), comment.get(1).getContent());
+    var commentsPage = commentService.search(searchDTO, pageable);
+    assertAll(
+      () -> assertEquals(2, commentsPage.getTotalElements()),
+      () -> assertTrue(commentsPage.getContent().stream().anyMatch(c -> c.getContent().equals(commentOne.getContent()))),
+      () -> assertTrue(commentsPage.getContent().stream().anyMatch(c -> c.getContent().equals(commentTwo.getContent())))
+    );
   }
 
   @Test
@@ -129,7 +122,7 @@ public class CommentServiceImplTest extends ContainerEnvironment implements With
       .content("New comment")
       .postId(post.getId())
       .build());
-    commentService.deleteById(comment.getId());
+    commentService.delete(comment.getId());
     assertFalse(commentRepository.existsById(comment.getId()));
   }
 

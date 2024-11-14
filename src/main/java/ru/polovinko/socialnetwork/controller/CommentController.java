@@ -16,7 +16,7 @@ import ru.polovinko.socialnetwork.service.CommentService;
 public class CommentController {
   private final CommentService commentService;
 
-  @GetMapping("/search")
+  @PostMapping("/search")
   public Page<CommentDTO> search(@RequestBody CommentSearchDTO dto, Pageable pageable) {
     return commentService.search(dto, pageable);
   }
@@ -28,7 +28,7 @@ public class CommentController {
 
   @DeleteMapping("{id}")
   public void delete(@PathVariable long id) {
-    commentService.deleteById(id);
+    commentService.delete(id);
   }
 
   @PutMapping

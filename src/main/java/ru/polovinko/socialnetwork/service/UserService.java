@@ -6,7 +6,6 @@ import ru.polovinko.socialnetwork.dto.UserCreateDTO;
 import ru.polovinko.socialnetwork.dto.UserDTO;
 import ru.polovinko.socialnetwork.dto.UserSearchDTO;
 import ru.polovinko.socialnetwork.dto.UserUpdateDTO;
-import ru.polovinko.socialnetwork.model.User;
 
 import java.util.Optional;
 
@@ -17,11 +16,7 @@ public interface UserService {
 
   UserDTO create(UserCreateDTO dto);
 
-  void deleteById(long id);
-
-  Optional<UserDTO> login(String username, String rawPassword);
+  void delete(long id);
 
   UserDTO update(UserUpdateDTO dto);
-
-  void addFriend(User user, User friend);
 }

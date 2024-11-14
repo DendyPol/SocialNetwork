@@ -1,5 +1,6 @@
 package ru.polovinko.socialnetwork.dto;
 
+import jakarta.validation.constraints.Positive;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -10,7 +11,8 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class UserUpdateDTO {
-  private Long id;
+  @Positive
+  private long id;
   private String username;
   private String password;
   private String email;

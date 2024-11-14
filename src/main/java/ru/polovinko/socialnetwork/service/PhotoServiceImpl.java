@@ -43,14 +43,15 @@ public class PhotoServiceImpl implements PhotoService {
   public PhotoDTO create(PhotoCreateDTO dto) {
     var userDTO = userService.findById(dto.getUserId()).get();
     var user = modelMapper.map(userDTO, User.class);
-    var photo = modelMapper.map(dto, Photo.class);
+    var photo = new Photo();
     photo.setUser(user);
+    photo.setUrl(dto.getUrl());
     var savedPhoto = photoRepository.save(photo);
     return modelMapper.map(savedPhoto, PhotoDTO.class);
   }
 
   @Override
-  public void deleteById(long id) {
+  public void delete(long id) {
     photoRepository.findById(id)
       .orElseThrow(() -> new ObjectNotFoundException(String.format("Photo with ID %d not found", id)));
     photoRepository.deleteById(id);

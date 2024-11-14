@@ -1,7 +1,6 @@
 package ru.polovinko.socialnetwork;
 
 import org.assertj.core.api.WithAssertions;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,7 +13,6 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 import ru.polovinko.socialnetwork.config.ContainerEnvironment;
 import ru.polovinko.socialnetwork.dto.*;
 import ru.polovinko.socialnetwork.exception.ObjectNotFoundException;
-import ru.polovinko.socialnetwork.repository.UserRepository;
 import ru.polovinko.socialnetwork.service.PhotoService;
 import ru.polovinko.socialnetwork.service.PostService;
 import ru.polovinko.socialnetwork.service.UserService;
@@ -27,18 +25,11 @@ import static org.junit.jupiter.api.Assertions.*;
 @Testcontainers
 public class PostServiceImplTest extends ContainerEnvironment implements WithAssertions {
   @Autowired
-  private UserRepository userRepository;
-  @Autowired
   private UserService userService;
   @Autowired
   private PostService postService;
   @Autowired
   private PhotoService photoService;
-
-  @BeforeEach
-  void setUp() {
-    userRepository.deleteAll();
-  }
 
   @Test
   void createPostShouldSucceed() {
@@ -115,6 +106,7 @@ public class PostServiceImplTest extends ContainerEnvironment implements WithAss
       .build());
     var updatePost = PostUpdateDTO.builder()
       .id(post.getId())
+      .photoId(post.getPhotoId())
       .content("Updated post")
       .build();
     var updatedPost = postService.update(updatePost);
@@ -137,7 +129,7 @@ public class PostServiceImplTest extends ContainerEnvironment implements WithAss
       .photoId(photo.getId())
       .content("post")
       .build());
-    postService.deleteById(createPost.getId());
+    postService.delete(createPost.getId());
     assertThrows(ObjectNotFoundException.class, () -> postService.findById(createPost.getId()).isPresent());
   }
 }

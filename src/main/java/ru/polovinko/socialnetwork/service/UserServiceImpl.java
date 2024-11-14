@@ -47,17 +47,6 @@ public class UserServiceImpl implements UserService {
   }
 
   @Override
-  public Optional<UserDTO> login(String username, String rawPassword) {
-    var user = userRepository.findByUsername(username)
-      .orElseThrow(() -> new ObjectNotFoundException(String.format("User with username %s not found", username)));
-    var encodedPassword = PasswordUtil.encodePassword(rawPassword);
-    if (!user.getPassword().equals(encodedPassword)) {
-      throw new IllegalStateException("Invalid username or password");
-    }
-    return Optional.ofNullable(modelMapper.map(user, UserDTO.class));
-  }
-
-  @Override
   public UserDTO update(UserUpdateDTO dto) {
     var user = userRepository.findById(dto.getId())
       .orElseThrow(() -> new ObjectNotFoundException(String.format("User with ID %d not found", dto.getId())));
@@ -68,15 +57,7 @@ public class UserServiceImpl implements UserService {
   }
 
   @Override
-  public void addFriend(User user, User friend) {
-    user.getFriends().add(friend);
-    friend.getFriends().add(user);
-    userRepository.save(user);
-    userRepository.save(friend);
-  }
-
-  @Override
-  public void deleteById(long userId) {
+  public void delete(long userId) {
     userRepository.findById(userId)
       .orElseThrow(() -> new ObjectNotFoundException(String.format("User with ID %d not found", userId)));
     userRepository.deleteById(userId);

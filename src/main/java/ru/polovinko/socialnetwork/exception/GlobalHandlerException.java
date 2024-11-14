@@ -12,4 +12,9 @@ public class GlobalHandlerException {
   public void notFoundException(Exception e) {
     log.warn(e.getMessage());
   }
+
+  @ExceptionHandler({AlreadyExistException.class})
+  public void alreadyExistException(Exception e) {
+    log.warn(e.getMessage());
+  }
 }

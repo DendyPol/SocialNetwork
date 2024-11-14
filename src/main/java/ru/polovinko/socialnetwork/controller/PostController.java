@@ -10,22 +10,15 @@ import ru.polovinko.socialnetwork.dto.PostSearchDTO;
 import ru.polovinko.socialnetwork.dto.PostUpdateDTO;
 import ru.polovinko.socialnetwork.service.PostService;
 
-import java.util.Optional;
-
 @RestController
 @RequestMapping("/api/v1/posts")
 @RequiredArgsConstructor
 public class PostController {
   private final PostService postService;
 
-  @GetMapping("/search")
+  @PostMapping("/search")
   public Page<PostDTO> search(@RequestBody PostSearchDTO dto, Pageable pageable) {
     return postService.search(dto, pageable);
-  }
-
-  @GetMapping("{id}")
-  public Optional<PostDTO> findById(@PathVariable long id) {
-    return postService.findById(id);
   }
 
   @PostMapping
@@ -34,8 +27,8 @@ public class PostController {
   }
 
   @DeleteMapping("{id}")
-  public void deleteById(@PathVariable long id) {
-    postService.deleteById(id);
+  public void delete(@PathVariable long id) {
+    postService.delete(id);
   }
 
   @PutMapping

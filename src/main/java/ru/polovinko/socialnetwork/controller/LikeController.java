@@ -1,9 +1,12 @@
 package ru.polovinko.socialnetwork.controller;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;
 import ru.polovinko.socialnetwork.dto.LikeCreateDTO;
 import ru.polovinko.socialnetwork.dto.LikeDTO;
+import ru.polovinko.socialnetwork.dto.LikeSearchDTO;
 import ru.polovinko.socialnetwork.service.LikeService;
 
 @RestController
@@ -17,13 +20,13 @@ public class LikeController {
     return likeService.create(dto);
   }
 
-  @GetMapping("{id}")
-  public int getLikesCount(@PathVariable long id) {
-    return likeService.getLikesCountForPost(id);
+  @PostMapping("/search")
+  public Page<LikeDTO> search(@RequestBody LikeSearchDTO dto, Pageable pageable) {
+    return likeService.search(dto, pageable);
   }
 
   @DeleteMapping("{id}")
   public void delete(@PathVariable long id) {
-    likeService.deleteById(id);
+    likeService.delete(id);
   }
 }

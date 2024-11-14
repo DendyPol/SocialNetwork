@@ -1,7 +1,6 @@
 package ru.polovinko.socialnetwork;
 
 import org.assertj.core.api.WithAssertions;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,8 +11,8 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 import ru.polovinko.socialnetwork.config.ContainerEnvironment;
 import ru.polovinko.socialnetwork.dto.FriendRequestCreateDTO;
 import ru.polovinko.socialnetwork.dto.UserCreateDTO;
+import ru.polovinko.socialnetwork.exception.AlreadyExistException;
 import ru.polovinko.socialnetwork.repository.FriendRequestRepository;
-import ru.polovinko.socialnetwork.repository.UserRepository;
 import ru.polovinko.socialnetwork.service.FriendRequestService;
 import ru.polovinko.socialnetwork.service.UserService;
 
@@ -27,16 +26,9 @@ public class FriendRequestServiceImplTest extends ContainerEnvironment implement
   @Autowired
   private FriendRequestService service;
   @Autowired
-  private UserRepository userRepository;
-  @Autowired
   private FriendRequestRepository friendRequestRepository;
   @Autowired
   private UserService userService;
-
-  @BeforeEach
-  void setUp() {
-    userRepository.deleteAll();
-  }
 
   @Test
   void sendFriendRequestShouldSendRequestWhenUsersAreValid() {
@@ -74,7 +66,7 @@ public class FriendRequestServiceImplTest extends ContainerEnvironment implement
     );
     var friend = userService.create(UserCreateDTO.builder()
       .username("friend")
-      .email("friend@exmaple.ru")
+      .email("friend@example.ru")
       .password("password")
       .build()
     );
@@ -83,7 +75,7 @@ public class FriendRequestServiceImplTest extends ContainerEnvironment implement
       .friendId(friend.getId())
       .build();
     service.create(create);
-    var exception = assertThrows(IllegalStateException.class, () ->
+    var exception = assertThrows(AlreadyExistException.class, () ->
       service.create(create));
     assertTrue(exception.getMessage().contains("Friend request already sent"));
   }
@@ -120,7 +112,7 @@ public class FriendRequestServiceImplTest extends ContainerEnvironment implement
     );
     var friend = userService.create(UserCreateDTO.builder()
       .username("friend")
-      .email("friend@exmaple.ru")
+      .email("friend@example.ru")
       .password("password")
       .build()
     );

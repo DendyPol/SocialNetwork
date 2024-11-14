@@ -1,12 +1,12 @@
 spring:
   datasource:
-    url: jdbc:postgresql://localhost:5432/social_network
+    url: jdbc:postgresql://localhost:5432/social_network_test
     username: postgres
     password: postgres
     driver-class-name: org.postgresql.Driver
   jpa:
     hibernate:
-      ddl-auto: none
+      ddl-auto: create-drop
     show-sql: true
     properties:
       hibernate:

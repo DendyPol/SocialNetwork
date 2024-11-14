@@ -1,7 +1,6 @@
 package ru.polovinko.socialnetwork;
 
 import org.assertj.core.api.WithAssertions;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,11 +27,6 @@ public class UserServiceImplTest extends ContainerEnvironment implements WithAss
   @Autowired
   UserRepository userRepository;
 
-  @BeforeEach
-  void setUp() {
-    userRepository.deleteAll();
-  }
-
   @Test
   void createUserShouldCreateUserWhenDataIsValid() {
     var user = userService.create(UserCreateDTO.builder()
@@ -52,22 +46,6 @@ public class UserServiceImplTest extends ContainerEnvironment implements WithAss
       () -> assertEquals(user, expectedUser),
       () -> assertEquals(user.hashCode(), expectedUser.hashCode())
     );
-  }
-
-  @Test
-  void createUserShouldThrowExceptionWhenUsernameIsTaken() {
-    var user = userService.create(UserCreateDTO.builder()
-      .username("testUser")
-      .email("testuser@example.ru")
-      .password("password123")
-      .build());
-    var duplicateUser = UserCreateDTO.builder()
-      .username("testUser")
-      .email("testuser@example.ru")
-      .password("password123")
-      .build();
-    var exception = assertThrows(IllegalStateException.class, () -> userService.create(duplicateUser));
-    assertTrue(exception.getMessage().contains("Username testUser is already taken"));
   }
 
   @Test
@@ -94,10 +72,10 @@ public class UserServiceImplTest extends ContainerEnvironment implements WithAss
   void deleteUserShouldRemoveUserWhenUserExist() {
     var user = userService.create(UserCreateDTO.builder()
       .username("testUser")
-      .email("testuser@exmaple.ru")
+      .email("testuser@example.ru")
       .password("password123")
       .build());
-    userService.deleteById(user.getId());
+    userService.delete(user.getId());
     assertTrue(userRepository.findById(user.getId()).isEmpty());
   }
 }

@@ -1,12 +1,13 @@
 package ru.polovinko.socialnetwork.controller;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;
 import ru.polovinko.socialnetwork.dto.FriendRequestCreateDTO;
 import ru.polovinko.socialnetwork.dto.FriendRequestDTO;
+import ru.polovinko.socialnetwork.dto.FriendRequestSearchDTO;
 import ru.polovinko.socialnetwork.service.FriendRequestService;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/friend-request")
@@ -29,8 +30,8 @@ public class FriendRequestController {
     friendRequestService.delete(id);
   }
 
-  @GetMapping("{id}")
-  public List<FriendRequestDTO> getFriendRequestFoUser(@PathVariable long id) {
-    return friendRequestService.getFriendRequestForUser(id);
+  @PostMapping("/search")
+  public Page<FriendRequestDTO> search(@RequestBody FriendRequestSearchDTO dto, Pageable pageable) {
+    return friendRequestService.search(dto, pageable);
   }
 }

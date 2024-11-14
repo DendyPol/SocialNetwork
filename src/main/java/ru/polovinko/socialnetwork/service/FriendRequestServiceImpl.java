@@ -2,17 +2,19 @@ package ru.polovinko.socialnetwork.service;
 
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.polovinko.socialnetwork.dto.FriendRequestCreateDTO;
 import ru.polovinko.socialnetwork.dto.FriendRequestDTO;
+import ru.polovinko.socialnetwork.dto.FriendRequestSearchDTO;
+import ru.polovinko.socialnetwork.exception.AlreadyExistException;
 import ru.polovinko.socialnetwork.exception.ObjectNotFoundException;
 import ru.polovinko.socialnetwork.model.FriendRequest;
 import ru.polovinko.socialnetwork.model.User;
 import ru.polovinko.socialnetwork.repository.FriendRequestRepository;
-
-import java.util.List;
-import java.util.stream.Collectors;
+import ru.polovinko.socialnetwork.specification.FriendRequestSpecification;
 
 @Service
 @RequiredArgsConstructor
@@ -29,7 +31,7 @@ public class FriendRequestServiceImpl implements FriendRequestService {
     var user = modelMapper.map(userDTO, User.class);
     var friend = modelMapper.map(friendDTO, User.class);
     if (friendRequestRepository.existsByUserAndFriend(user, friend)) {
-      throw new IllegalStateException("Friend request already sent");
+      throw new AlreadyExistException("Friend request already sent");
     }
     var friendRequest = new FriendRequest();
     friendRequest.setUser(user);
@@ -44,10 +46,6 @@ public class FriendRequestServiceImpl implements FriendRequestService {
     var friendRequest = friendRequestRepository.findById(id)
       .orElseThrow(() -> new ObjectNotFoundException(String.format("Friend request with ID %d not found", id)));
     friendRequest.setAccepted(true);
-    var user = friendRequest.getUser();
-    var friend = friendRequest.getFriend();
-    userService.addFriend(user, friend);
-    userService.addFriend(friend, user);
     friendRequestRepository.save(friendRequest);
     return modelMapper.map(friendRequest, FriendRequestDTO.class);
   }
@@ -60,11 +58,9 @@ public class FriendRequestServiceImpl implements FriendRequestService {
   }
 
   @Override
-  public List<FriendRequestDTO> getFriendRequestForUser(long id) {
-    var userDTO = userService.findById(id);
-    var user = modelMapper.map(userDTO, User.class);
-    return friendRequestRepository.findByFriendAndAcceptedFalse(user).stream()
-      .map(friendRequest -> modelMapper.map(friendRequest, FriendRequestDTO.class))
-      .collect(Collectors.toList());
+  public Page<FriendRequestDTO> search(FriendRequestSearchDTO dto, Pageable pageable) {
+    var spec = new FriendRequestSpecification(dto);
+    return friendRequestRepository.findAll(spec, pageable)
+      .map(friendRequest -> modelMapper.map(friendRequest, FriendRequestDTO.class));
   }
 }

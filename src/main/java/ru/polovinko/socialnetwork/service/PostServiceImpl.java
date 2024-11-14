@@ -56,7 +56,7 @@ public class PostServiceImpl implements PostService {
   }
 
   @Override
-  public void deleteById(long id) {
+  public void delete(long id) {
     postRepository.findById(id)
       .orElseThrow(() -> new ObjectNotFoundException(String.format("Post with ID %d not found", id)));
     postRepository.deleteById(id);

@@ -15,5 +15,5 @@ public interface PhotoService {
 
   PhotoDTO create(PhotoCreateDTO dto);
 
-  void deleteById(long id);
+  void delete(long id);
 }

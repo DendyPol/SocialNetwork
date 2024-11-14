@@ -1,6 +1,9 @@
 package ru.polovinko.socialnetwork.dto;
 
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -12,15 +15,13 @@ import java.util.List;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@Valid
 public class PostCreateDTO {
-  @Valid
+  @NotNull
+  @NotEmpty
   private String content;
-  @Valid
-  private Long userId;
-  @Valid
-  private List<CommentDTO> comments;
-  @Valid
-  private List<LikeDTO> likes;
-  @Valid
-  private Long photoId;
+  @Positive
+  private long userId;
+  @Positive
+  private long photoId;
 }

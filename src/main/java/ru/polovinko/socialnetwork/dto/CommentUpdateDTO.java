@@ -1,5 +1,6 @@
 package ru.polovinko.socialnetwork.dto;
 
+import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -11,7 +12,8 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class CommentUpdateDTO {
-  private Long id;
-  @Size(max = 300, message = "Comment cannot be longer than 300 characters")
+  @Positive
+  private long id;
+  @Size(min = 1, max = 300)
   private String content;
 }

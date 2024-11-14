@@ -5,10 +5,6 @@ import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import ru.polovinko.socialnetwork.model.FriendRequest;
 import ru.polovinko.socialnetwork.model.User;
 
-import java.util.List;
-
 public interface FriendRequestRepository extends JpaRepository<FriendRequest, Long>, JpaSpecificationExecutor<FriendRequest> {
   boolean existsByUserAndFriend(User user, User friend);
-
-  List<FriendRequest> findByFriendAndAcceptedFalse(User friend);
 }

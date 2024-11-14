@@ -1,9 +1,10 @@
 package ru.polovinko.socialnetwork.service;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import ru.polovinko.socialnetwork.dto.FriendRequestCreateDTO;
 import ru.polovinko.socialnetwork.dto.FriendRequestDTO;
-
-import java.util.List;
+import ru.polovinko.socialnetwork.dto.FriendRequestSearchDTO;
 
 public interface FriendRequestService {
   FriendRequestDTO create(FriendRequestCreateDTO dto);
@@ -12,5 +13,5 @@ public interface FriendRequestService {
 
   void delete(long requestId);
 
-  List<FriendRequestDTO> getFriendRequestForUser(long userId);
+  Page<FriendRequestDTO> search(FriendRequestSearchDTO dto, Pageable pageable);
 }

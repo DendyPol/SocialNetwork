@@ -8,6 +8,4 @@ import ru.polovinko.socialnetwork.model.User;
 
 public interface LikeRepository extends JpaRepository<Like, Long>, JpaSpecificationExecutor<Like> {
   boolean existsByPostAndUser(Post post, User user);
-
-  int countByPost(Post post);
 }

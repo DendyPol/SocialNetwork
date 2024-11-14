@@ -13,7 +13,7 @@ import lombok.NoArgsConstructor;
 public class Comment {
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
-  private Long id;
+  private long id;
   private String content;
   @ManyToOne
   @JoinColumn(name = "post_id")

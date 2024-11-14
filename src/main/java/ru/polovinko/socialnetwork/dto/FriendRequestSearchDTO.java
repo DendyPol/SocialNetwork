@@ -7,9 +7,10 @@ import lombok.NoArgsConstructor;
 
 @Data
 @Builder
-@AllArgsConstructor
 @NoArgsConstructor
-public class LoginRequestDTO {
-  private String username;
-  private String password;
+@AllArgsConstructor
+public class FriendRequestSearchDTO {
+  private Long userId;
+  private Long friendId;
+  private Boolean accepted;
 }

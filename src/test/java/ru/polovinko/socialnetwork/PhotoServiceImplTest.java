@@ -1,12 +1,10 @@
 package ru.polovinko.socialnetwork;
 
 import org.assertj.core.api.WithAssertions;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.test.context.ActiveProfiles;
@@ -14,12 +12,10 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import ru.polovinko.socialnetwork.config.ContainerEnvironment;
 import ru.polovinko.socialnetwork.dto.PhotoCreateDTO;
-import ru.polovinko.socialnetwork.dto.PhotoDTO;
 import ru.polovinko.socialnetwork.dto.PhotoSearchDTO;
 import ru.polovinko.socialnetwork.dto.UserCreateDTO;
 import ru.polovinko.socialnetwork.exception.ObjectNotFoundException;
 import ru.polovinko.socialnetwork.repository.PhotoRepository;
-import ru.polovinko.socialnetwork.repository.UserRepository;
 import ru.polovinko.socialnetwork.service.PhotoService;
 import ru.polovinko.socialnetwork.service.UserService;
 
@@ -36,13 +32,6 @@ public class PhotoServiceImplTest extends ContainerEnvironment implements WithAs
   private UserService userService;
   @Autowired
   private PhotoRepository photoRepository;
-  @Autowired
-  private UserRepository userRepository;
-
-  @BeforeEach
-  void setUp() {
-    userRepository.deleteAll();
-  }
 
   @Test
   void findAllPhotosForUserShouldReturnPhotosWhenUserExists() {
@@ -62,14 +51,15 @@ public class PhotoServiceImplTest extends ContainerEnvironment implements WithAs
       .url("http://example.ru/photo2.jpg")
       .build()
     );
+    var searchDTO = PhotoSearchDTO.builder()
+      .userId(user.getId())
+      .build();
     Pageable pageable = PageRequest.of(0, 10);
-    var searchDTO = new PhotoSearchDTO();
-    Page<PhotoDTO> photosPage = photoService.search(searchDTO, pageable);
-    var photo = photosPage.getContent();
+    var photosPage = photoService.search(searchDTO, pageable);
     assertAll(
-      () -> assertEquals(2, photo.size()),
-      () -> assertTrue(photo.stream().anyMatch(p -> p.getUrl().equals(photoOne.getUrl()))),
-      () -> assertTrue(photo.stream().anyMatch(p -> p.getUrl().equals(photoTwo.getUrl())))
+      () -> assertEquals(2, photosPage.getTotalElements()),
+      () -> assertTrue(photosPage.stream().anyMatch(p -> p.getUrl().equals(photoOne.getUrl()))),
+      () -> assertTrue(photosPage.stream().anyMatch(p -> p.getUrl().equals(photoTwo.getUrl())))
     );
   }
 
@@ -106,7 +96,7 @@ public class PhotoServiceImplTest extends ContainerEnvironment implements WithAs
       .url("http://example.com/photo.jpg")
       .build()
     );
-    photoService.deleteById(photo.getId());
+    photoService.delete(photo.getId());
     assertFalse(photoRepository.existsById(photo.getId()));
   }
 

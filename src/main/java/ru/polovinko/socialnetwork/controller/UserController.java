@@ -4,10 +4,11 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;
-import ru.polovinko.socialnetwork.dto.*;
+import ru.polovinko.socialnetwork.dto.UserCreateDTO;
+import ru.polovinko.socialnetwork.dto.UserDTO;
+import ru.polovinko.socialnetwork.dto.UserSearchDTO;
+import ru.polovinko.socialnetwork.dto.UserUpdateDTO;
 import ru.polovinko.socialnetwork.service.UserService;
-
-import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/v1/users")
@@ -15,14 +16,9 @@ import java.util.Optional;
 public class UserController {
   private final UserService userService;
 
-  @GetMapping("/search")
+  @PostMapping("/search")
   public Page<UserDTO> search(@RequestBody UserSearchDTO dto, Pageable pageable) {
     return userService.search(dto, pageable);
-  }
-
-  @GetMapping("{id}")
-  public Optional<UserDTO> findById(@PathVariable long id) {
-    return userService.findById(id);
   }
 
   @PostMapping
@@ -30,15 +26,9 @@ public class UserController {
     return userService.create(dto);
   }
 
-  @PostMapping("/login")
-  public UserDTO login(@RequestBody LoginRequestDTO dto) {
-    return userService.login(dto.getUsername(), dto.getPassword())
-      .orElseThrow(() -> new IllegalArgumentException("Invalid username or password"));
-  }
-
   @DeleteMapping("{id}")
-  public void deleteUserById(@PathVariable long id) {
-    userService.deleteById(id);
+  public void delete(@PathVariable long id) {
+    userService.delete(id);
   }
 
   @PutMapping

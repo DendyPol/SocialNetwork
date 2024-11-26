@@ -1,6 +1,7 @@
 package ru.polovinko.socialnetwork.dto;
 
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.Positive;
 import lombok.AllArgsConstructor;
@@ -18,6 +19,6 @@ public class PhotoSearchDTO {
   private Long userId;
   @Positive
   private Long photoId;
-  @NotEmpty
+  @NotBlank
   private String url;
 }

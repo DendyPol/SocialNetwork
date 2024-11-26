@@ -1,6 +1,7 @@
 package ru.polovinko.socialnetwork.dto;
 
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -13,10 +14,10 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Valid
 public class UserCreateDTO {
-  @NotEmpty
+  @NotBlank
   private String password;
-  @NotEmpty
+  @NotBlank
   private String username;
-  @NotEmpty
+  @NotBlank
   private String email;
 }

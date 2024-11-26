@@ -1,6 +1,7 @@
 package ru.polovinko.socialnetwork.dto;
 
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
@@ -18,6 +19,6 @@ public class CommentUpdateDTO {
   @Positive
   private long id;
   @Size(min = 1, max = 300)
-  @NotEmpty
+  @NotBlank
   private String content;
 }

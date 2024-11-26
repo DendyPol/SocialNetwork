@@ -1,6 +1,7 @@
 package ru.polovinko.socialnetwork.dto;
 
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.Positive;
 import lombok.AllArgsConstructor;
@@ -16,7 +17,7 @@ import lombok.NoArgsConstructor;
 public class PostUpdateDTO {
   @Positive
   private long id;
-  @NotEmpty
+  @NotBlank
   private String content;
   @Positive
   private long photoId;

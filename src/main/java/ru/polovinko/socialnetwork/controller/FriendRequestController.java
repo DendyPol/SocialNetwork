@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.*;
 import ru.polovinko.socialnetwork.dto.FriendRequestCreateDTO;
 import ru.polovinko.socialnetwork.dto.FriendRequestDTO;
 import ru.polovinko.socialnetwork.dto.FriendRequestSearchDTO;
+import ru.polovinko.socialnetwork.dto.FriendRequestUpdateDTO;
 import ru.polovinko.socialnetwork.service.FriendRequestService;
 
 @RestController
@@ -20,9 +21,9 @@ public class FriendRequestController {
     return friendRequestService.create(dto);
   }
 
-  @PutMapping("{id}")
-  public FriendRequestDTO update(@PathVariable long id) {
-    return friendRequestService.update(id);
+  @PutMapping
+  public FriendRequestDTO update(@RequestBody FriendRequestUpdateDTO dto) {
+    return friendRequestService.update(dto);
   }
 
   @DeleteMapping("{id}")

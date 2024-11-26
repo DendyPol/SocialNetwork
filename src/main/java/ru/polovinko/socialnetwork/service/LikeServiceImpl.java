@@ -6,10 +6,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import ru.polovinko.socialnetwork.dto.LikeCreateDTO;
-import ru.polovinko.socialnetwork.dto.LikeDTO;
-import ru.polovinko.socialnetwork.dto.LikeSearchDTO;
-import ru.polovinko.socialnetwork.exception.AlreadyExistException;
+import ru.polovinko.socialnetwork.dto.*;
+import ru.polovinko.socialnetwork.exception.EntityExistException;
 import ru.polovinko.socialnetwork.exception.ObjectNotFoundException;
 import ru.polovinko.socialnetwork.model.Like;
 import ru.polovinko.socialnetwork.model.Post;
@@ -28,18 +26,29 @@ public class LikeServiceImpl implements LikeService {
 
   @Override
   public LikeDTO create(LikeCreateDTO dto) {
-    var postDTO = postService.findById(dto.getPostId()).get();
-    var userDTO = userService.findById(dto.getUserId()).get();
-    var post = modelMapper.map(postDTO, Post.class);
-    var user = modelMapper.map(userDTO, User.class);
+    var userSearchDTO = UserSearchDTO.builder()
+      .userId(dto.getUserId())
+      .build();
+    var postSearchDTO = PostSearchDTO.builder()
+      .postId(dto.getPostId())
+      .build();
+    var user = userService.search(userSearchDTO, Pageable.unpaged())
+      .getContent()
+      .stream()
+      .findFirst()
+      .map(userDTO -> modelMapper.map(userDTO, User.class))
+      .orElseThrow(() -> new ObjectNotFoundException(String.format("User with ID %d not found", dto.getUserId())));
+    var post = postService.search(postSearchDTO, Pageable.unpaged())
+      .getContent()
+      .stream()
+      .findFirst()
+      .map(postDTO -> modelMapper.map(postDTO, Post.class))
+      .orElseThrow(() -> new ObjectNotFoundException(String.format("Post with ID %d not found", dto.getPostId())));
     if (likeRepository.existsByPostAndUser(post, user)) {
-      throw new AlreadyExistException("User has already liked this post");
+      throw new EntityExistException("User has already liked this post");
     }
-    var like = new Like();
-    like.setUser(user);
-    like.setPost(post);
-    likeRepository.save(like);
-    return modelMapper.map(like, LikeDTO.class);
+    var like = new Like(0L, post, user);
+    return modelMapper.map(likeRepository.save(like), LikeDTO.class);
   }
 
   @Override

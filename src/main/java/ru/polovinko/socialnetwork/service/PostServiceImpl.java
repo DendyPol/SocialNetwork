@@ -6,10 +6,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import ru.polovinko.socialnetwork.dto.PostCreateDTO;
-import ru.polovinko.socialnetwork.dto.PostDTO;
-import ru.polovinko.socialnetwork.dto.PostSearchDTO;
-import ru.polovinko.socialnetwork.dto.PostUpdateDTO;
+import ru.polovinko.socialnetwork.dto.*;
 import ru.polovinko.socialnetwork.exception.ObjectNotFoundException;
 import ru.polovinko.socialnetwork.model.Photo;
 import ru.polovinko.socialnetwork.model.Post;
@@ -17,7 +14,7 @@ import ru.polovinko.socialnetwork.model.User;
 import ru.polovinko.socialnetwork.repository.PostRepository;
 import ru.polovinko.socialnetwork.specification.PostSpecification;
 
-import java.util.Optional;
+import java.util.ArrayList;
 
 @Service
 @RequiredArgsConstructor
@@ -36,22 +33,26 @@ public class PostServiceImpl implements PostService {
   }
 
   @Override
-  public Optional<PostDTO> findById(long id) {
-    var post = postRepository.findById(id)
-      .orElseThrow(() -> new ObjectNotFoundException(String.format("Post with ID %d not found", id)));
-    return Optional.ofNullable(modelMapper.map(post, PostDTO.class));
-  }
-
-  @Override
   public PostDTO create(PostCreateDTO dto) {
-    var userDTO = userService.findById(dto.getUserId()).get();
-    var photoDTO = photoService.photoById(dto.getPhotoId()).get();
-    var user = modelMapper.map(userDTO, User.class);
-    var photo = modelMapper.map(photoDTO, Photo.class);
-    var post = new Post();
-    post.setUser(user);
-    post.setPhoto(photo);
-    post.setContent(dto.getContent());
+    var userSearchDTO = UserSearchDTO.builder()
+      .userId(dto.getUserId())
+      .build();
+    var photoSearchDTO = PhotoSearchDTO.builder()
+      .photoId(dto.getPhotoId())
+      .build();
+    var user = userService.search(userSearchDTO, Pageable.unpaged())
+      .getContent()
+      .stream()
+      .findFirst()
+      .map(userDTO -> modelMapper.map(userDTO, User.class))
+      .orElseThrow(() -> new ObjectNotFoundException(String.format("User with ID %d not found", dto.getUserId())));
+    var photo = photoService.search(photoSearchDTO, Pageable.unpaged())
+      .getContent()
+      .stream()
+      .findFirst()
+      .map(photoDTO -> modelMapper.map(photoDTO, Photo.class))
+      .orElseThrow(() -> new ObjectNotFoundException(String.format("Photo with ID %d not found", dto.getPhotoId())));
+    var post = new Post(0L, dto.getContent(), user, new ArrayList<>(), new ArrayList<>(), photo);
     return modelMapper.map(postRepository.save(post), PostDTO.class);
   }
 
@@ -66,12 +67,17 @@ public class PostServiceImpl implements PostService {
   public PostDTO update(PostUpdateDTO dto) {
     var post = postRepository.findById(dto.getId())
       .orElseThrow(() -> new ObjectNotFoundException(String.format("Post with ID %d not found", dto.getId())));
-    Optional.ofNullable(dto.getContent()).ifPresent(post::setContent);
-    Optional.ofNullable(dto.getPhotoId()).ifPresent(photoId -> {
-      var photoDTO = photoService.photoById(dto.getPhotoId()).get();
-      var photo = modelMapper.map(photoDTO, Photo.class);
-      post.setPhoto(photo);
-    });
+    var photoSearchDTO = PhotoSearchDTO.builder()
+      .photoId(dto.getPhotoId())
+      .build();
+      var photo = photoService.search(photoSearchDTO, Pageable.unpaged())
+        .getContent()
+        .stream()
+        .findFirst()
+        .map(photoDTO -> modelMapper.map(photoDTO, Photo.class))
+        .orElseThrow(()-> new ObjectNotFoundException(String.format("Photo with ID %d not found", dto.getPhotoId())));
+    post.setContent(dto.getContent());
+    post.setPhoto(photo);
     return modelMapper.map(postRepository.save(post), PostDTO.class);
   }
 }

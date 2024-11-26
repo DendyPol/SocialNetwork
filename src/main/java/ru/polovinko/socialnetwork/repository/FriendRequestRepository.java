@@ -6,5 +6,5 @@ import ru.polovinko.socialnetwork.model.FriendRequest;
 import ru.polovinko.socialnetwork.model.User;
 
 public interface FriendRequestRepository extends JpaRepository<FriendRequest, Long>, JpaSpecificationExecutor<FriendRequest> {
-  boolean existsByUserAndFriend(User user, User friend);
+  boolean existsBySenderAndRecipient(User sender, User recipient);
 }

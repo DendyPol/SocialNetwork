@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import ru.polovinko.socialnetwork.model.FriendshipStatus;
 
 @Data
 @Builder
@@ -11,7 +12,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class FriendRequestDTO {
   private Long id;
-  private Long userId;
-  private Long friendId;
-  private boolean accepted;
+  private Long senderId;
+  private Long recipientId;
+  private FriendshipStatus status;
 }

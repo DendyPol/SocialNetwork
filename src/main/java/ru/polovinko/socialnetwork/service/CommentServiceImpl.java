@@ -5,10 +5,7 @@ import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-import ru.polovinko.socialnetwork.dto.CommentCreateDTO;
-import ru.polovinko.socialnetwork.dto.CommentDTO;
-import ru.polovinko.socialnetwork.dto.CommentSearchDTO;
-import ru.polovinko.socialnetwork.dto.CommentUpdateDTO;
+import ru.polovinko.socialnetwork.dto.*;
 import ru.polovinko.socialnetwork.exception.ObjectNotFoundException;
 import ru.polovinko.socialnetwork.model.Comment;
 import ru.polovinko.socialnetwork.model.Post;
@@ -35,14 +32,25 @@ public class CommentServiceImpl implements CommentService {
 
   @Override
   public CommentDTO create(CommentCreateDTO dto) {
-    var userDTO = userService.findById(dto.getUserId()).get();
-    var user = modelMapper.map(userDTO, User.class);
-    var postDTO = postService.findById(dto.getPostId()).get();
-    var post = modelMapper.map(postDTO, Post.class);
-    var comment = new Comment();
-    comment.setUser(user);
-    comment.setContent(dto.getContent());
-    comment.setPost(post);
+    var userSearchDTO = UserSearchDTO.builder()
+      .userId(dto.getUserId())
+      .build();
+    var postSearchDTO = PostSearchDTO.builder()
+      .postId(dto.getPostId())
+      .build();
+    var user = userService.search(userSearchDTO, Pageable.unpaged())
+      .getContent()
+      .stream()
+      .findFirst()
+      .map(userDTO -> modelMapper.map(userDTO, User.class))
+      .orElseThrow(() -> new ObjectNotFoundException(String.format("User with ID %d not found", dto.getUserId())));
+    var post = postService.search(postSearchDTO, Pageable.unpaged())
+      .getContent()
+      .stream()
+      .findFirst()
+      .map(postDTO -> modelMapper.map(postDTO, Post.class))
+      .orElseThrow(() -> new ObjectNotFoundException(String.format("Post with ID %d not found", dto.getPostId())));
+    var comment = new Comment(0L, dto.getContent(), post, user);
     return modelMapper.map(commentRepository.save(comment), CommentDTO.class);
   }
 

@@ -23,8 +23,8 @@ public class User {
   private List<Post> posts;
   @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
   private List<Photo> gallery;
-  @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+  @OneToMany(mappedBy = "sender", cascade = CascadeType.ALL, orphanRemoval = true)
   private List<FriendRequest> sentRequest;
-  @OneToMany(mappedBy = "friend", cascade = CascadeType.ALL, orphanRemoval = true)
+  @OneToMany(mappedBy = "recipient", cascade = CascadeType.ALL, orphanRemoval = true)
   private List<FriendRequest> receivedRequests;
 }

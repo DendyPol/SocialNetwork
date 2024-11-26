@@ -13,8 +13,8 @@ public class GlobalHandlerException {
     log.warn(e.getMessage());
   }
 
-  @ExceptionHandler({AlreadyExistException.class})
-  public void alreadyExistException(Exception e) {
+  @ExceptionHandler({EntityExistException.class})
+  public void entityExistException(Exception e) {
     log.warn(e.getMessage());
   }
 }

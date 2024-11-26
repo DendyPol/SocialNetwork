@@ -21,7 +21,7 @@ public class UserController {
     return userService.search(dto, pageable);
   }
 
-  @PostMapping
+  @PostMapping("/create")
   public UserDTO createUser(@RequestBody UserCreateDTO dto) {
     return userService.create(dto);
   }

@@ -16,14 +16,14 @@ public class FriendRequestSpecification implements Specification<FriendRequest> 
   @Override
   public Predicate toPredicate(Root<FriendRequest> root, CriteriaQuery<?> query, CriteriaBuilder builder) {
     var res = builder.conjunction();
-    if (dto.getUserId() != null) {
-      res = builder.and(res, builder.equal(root.get("user").get("id"), dto.getUserId()));
+    if (dto.getSenderId() != null) {
+      res = builder.and(res, builder.equal(root.get("sender").get("id"), dto.getSenderId()));
     }
-    if (dto.getFriendId() != null) {
-      res = builder.and(res, builder.equal(root.get("friend").get("id"), dto.getFriendId()));
+    if (dto.getRecipientId() != null) {
+      res = builder.and(res, builder.equal(root.get("recipient").get("id"), dto.getRecipientId()));
     }
-    if (dto.getAccepted() != null) {
-      res = builder.and(res, builder.equal(root.get("accepted"), dto.getAccepted()));
+    if (dto.getStatus() != null) {
+      res = builder.and(res, builder.equal(root.get("status"), dto.getStatus()));
     }
     return res;
   }

@@ -20,7 +20,7 @@ public class PhotoController {
     return photoService.search(dto, pageable);
   }
 
-  @PostMapping
+  @PostMapping("/create")
   public PhotoDTO create(@RequestBody PhotoCreateDTO dto) {
     return photoService.create(dto);
   }

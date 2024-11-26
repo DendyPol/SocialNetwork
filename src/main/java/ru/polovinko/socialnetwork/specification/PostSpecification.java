@@ -16,6 +16,9 @@ public class PostSpecification implements Specification<Post> {
   @Override
   public Predicate toPredicate(Root<Post> root, CriteriaQuery<?> query, CriteriaBuilder builder) {
     var predicate = builder.conjunction();
+    if (dto.getPostId() != null) {
+      predicate = builder.and(predicate, builder.equal(root.get("id"), dto.getPostId()));
+    }
     if (dto.getUserId() != null) {
       predicate = builder.and(predicate, builder.equal(root.get("user").get("id"), dto.getUserId()));
     }

@@ -21,7 +21,7 @@ public class PostController {
     return postService.search(dto, pageable);
   }
 
-  @PostMapping
+  @PostMapping("/create")
   public PostDTO create(@RequestBody PostCreateDTO dto) {
     return postService.create(dto);
   }

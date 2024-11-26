@@ -15,10 +15,11 @@ public class FriendRequest {
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private long id;
   @ManyToOne
-  @JoinColumn(name = "user_id")
-  private User user;
+  @JoinColumn(name = "sender_id")
+  private User sender;
   @ManyToOne
-  @JoinColumn(name = "friend_id")
-  private User friend;
-  private boolean accepted;
+  @JoinColumn(name = "recipient_id")
+  private User recipient;
+  @Enumerated(EnumType.STRING)
+  private FriendshipStatus status;
 }

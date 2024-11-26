@@ -9,13 +9,12 @@ import org.springframework.transaction.annotation.Transactional;
 import ru.polovinko.socialnetwork.dto.PhotoCreateDTO;
 import ru.polovinko.socialnetwork.dto.PhotoDTO;
 import ru.polovinko.socialnetwork.dto.PhotoSearchDTO;
+import ru.polovinko.socialnetwork.dto.UserSearchDTO;
 import ru.polovinko.socialnetwork.exception.ObjectNotFoundException;
 import ru.polovinko.socialnetwork.model.Photo;
 import ru.polovinko.socialnetwork.model.User;
 import ru.polovinko.socialnetwork.repository.PhotoRepository;
 import ru.polovinko.socialnetwork.specification.PhotoSpecification;
-
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -31,23 +30,19 @@ public class PhotoServiceImpl implements PhotoService {
     return photoRepository.findAll(spec, pageable)
       .map(photo -> modelMapper.map(photo, PhotoDTO.class));
   }
-
-  @Override
-  public Optional<PhotoDTO> photoById(long id) {
-    var photo = photoRepository.findById(id)
-      .orElseThrow(() -> new ObjectNotFoundException(String.format("Photo with ID %d not found", id)));
-    return Optional.of(modelMapper.map(photo, PhotoDTO.class));
-  }
-
   @Override
   public PhotoDTO create(PhotoCreateDTO dto) {
-    var userDTO = userService.findById(dto.getUserId()).get();
-    var user = modelMapper.map(userDTO, User.class);
-    var photo = new Photo();
-    photo.setUser(user);
-    photo.setUrl(dto.getUrl());
-    var savedPhoto = photoRepository.save(photo);
-    return modelMapper.map(savedPhoto, PhotoDTO.class);
+    var userSearchDTO = UserSearchDTO.builder()
+      .userId(dto.getUserId())
+      .build();
+    var user = userService.search(userSearchDTO, Pageable.unpaged())
+      .getContent()
+      .stream()
+      .findFirst()
+      .map(userDTO -> modelMapper.map(userDTO, User.class))
+      .orElseThrow(() -> new ObjectNotFoundException(String.format("User with ID %d not found", dto.getUserId())));
+    var photo = new Photo(0L, dto.getUrl(), user);
+    return modelMapper.map(photoRepository.save(photo), PhotoDTO.class);
   }
 
   @Override

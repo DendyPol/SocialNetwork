@@ -1,23 +1,20 @@
 package ru.polovinko.socialnetwork.dto;
 
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.Positive;
-import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import ru.polovinko.socialnetwork.model.FriendshipStatus;
 
 @Data
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
 @Valid
-public class CommentUpdateDTO {
+public class FriendRequestUpdateDTO {
   @Positive
   private long id;
-  @Size(min = 1, max = 300)
-  @NotEmpty
-  private String content;
+  private FriendshipStatus status;
 }

@@ -33,13 +33,6 @@ public class UserServiceImpl implements UserService {
   }
 
   @Override
-  public Optional<UserDTO> findById(long userId) {
-    var user = userRepository.findById(userId)
-      .orElseThrow(() -> new ObjectNotFoundException(String.format("User with ID %d not found", userId)));
-    return Optional.ofNullable(modelMapper.map(user, UserDTO.class));
-  }
-
-  @Override
   public UserDTO create(UserCreateDTO dto) {
     var user = modelMapper.map(dto, User.class);
     user.setPassword(PasswordUtil.encodePassword(dto.getPassword()));

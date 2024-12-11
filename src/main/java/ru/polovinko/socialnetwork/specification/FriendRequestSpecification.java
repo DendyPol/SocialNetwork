@@ -22,8 +22,8 @@ public class FriendRequestSpecification implements Specification<FriendRequest> 
     if (dto.getRecipientId() != null) {
       res = builder.and(res, builder.equal(root.get("recipient").get("id"), dto.getRecipientId()));
     }
-    if (dto.getStatus() != null) {
-      res = builder.and(res, builder.equal(root.get("status"), dto.getStatus()));
+    if (dto.getRequestStatus() != null) {
+      res = builder.and(res, builder.equal(root.get("status"), dto.getRequestStatus()));
     }
     return res;
   }

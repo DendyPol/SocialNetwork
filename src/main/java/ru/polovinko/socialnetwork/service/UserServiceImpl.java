@@ -1,7 +1,6 @@
 package ru.polovinko.socialnetwork.service;
 
 import lombok.RequiredArgsConstructor;
-import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -11,42 +10,38 @@ import ru.polovinko.socialnetwork.dto.UserDTO;
 import ru.polovinko.socialnetwork.dto.UserSearchDTO;
 import ru.polovinko.socialnetwork.dto.UserUpdateDTO;
 import ru.polovinko.socialnetwork.exception.ObjectNotFoundException;
-import ru.polovinko.socialnetwork.model.User;
+import ru.polovinko.socialnetwork.mapper.CommonMapper;
 import ru.polovinko.socialnetwork.repository.UserRepository;
 import ru.polovinko.socialnetwork.specification.UserSpecification;
 import ru.polovinko.socialnetwork.util.PasswordUtil;
-
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
 @Transactional
 public class UserServiceImpl implements UserService {
   private final UserRepository userRepository;
-  private final ModelMapper modelMapper;
+  private final CommonMapper commonMapper;
 
   @Override
   public Page<UserDTO> search(UserSearchDTO dto, Pageable pageable) {
     var spec = new UserSpecification(dto);
     return userRepository.findAll(spec, pageable)
-      .map(user -> modelMapper.map(user, UserDTO.class));
+      .map(commonMapper::toUserDTO);
   }
 
   @Override
   public UserDTO create(UserCreateDTO dto) {
-    var user = modelMapper.map(dto, User.class);
+    var user = commonMapper.toCreateUser(dto);
     user.setPassword(PasswordUtil.encodePassword(dto.getPassword()));
-    return modelMapper.map(userRepository.save(user), UserDTO.class);
+    return commonMapper.toUserDTO(userRepository.save(user));
   }
 
   @Override
   public UserDTO update(UserUpdateDTO dto) {
     var user = userRepository.findById(dto.getId())
       .orElseThrow(() -> new ObjectNotFoundException(String.format("User with ID %d not found", dto.getId())));
-    Optional.ofNullable(dto.getUsername()).ifPresent(user::setUsername);
-    Optional.ofNullable(dto.getPassword()).ifPresent(user::setPassword);
-    Optional.ofNullable(dto.getEmail()).ifPresent(user::setEmail);
-    return modelMapper.map(userRepository.save(user), UserDTO.class);
+    commonMapper.updateUserFromDTO(dto, user);
+    return commonMapper.toUserDTO(userRepository.save(user));
   }
 
   @Override

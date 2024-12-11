@@ -1,16 +1,14 @@
 package ru.polovinko.socialnetwork.service;
 
 import lombok.RequiredArgsConstructor;
-import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.polovinko.socialnetwork.dto.*;
 import ru.polovinko.socialnetwork.exception.ObjectNotFoundException;
-import ru.polovinko.socialnetwork.model.Photo;
+import ru.polovinko.socialnetwork.mapper.CommonMapper;
 import ru.polovinko.socialnetwork.model.Post;
-import ru.polovinko.socialnetwork.model.User;
 import ru.polovinko.socialnetwork.repository.PostRepository;
 import ru.polovinko.socialnetwork.specification.PostSpecification;
 
@@ -23,37 +21,35 @@ public class PostServiceImpl implements PostService {
   private final PostRepository postRepository;
   private final UserService userService;
   private final PhotoService photoService;
-  private final ModelMapper modelMapper;
+  private final CommonMapper commonMapper;
 
   @Override
   public Page<PostDTO> search(PostSearchDTO dto, Pageable pageable) {
     var spec = new PostSpecification(dto);
     return postRepository.findAll(spec, pageable)
-      .map(post -> modelMapper.map(post, PostDTO.class));
+      .map(commonMapper::toPostDTO);
   }
 
   @Override
   public PostDTO create(PostCreateDTO dto) {
-    var userSearchDTO = UserSearchDTO.builder()
-      .userId(dto.getUserId())
-      .build();
-    var photoSearchDTO = PhotoSearchDTO.builder()
-      .photoId(dto.getPhotoId())
-      .build();
-    var user = userService.search(userSearchDTO, Pageable.unpaged())
+    var user = userService.search(UserSearchDTO.builder()
+        .userId(dto.getUserId())
+        .build(), Pageable.unpaged())
       .getContent()
       .stream()
       .findFirst()
-      .map(userDTO -> modelMapper.map(userDTO, User.class))
+      .map(commonMapper::toUser)
       .orElseThrow(() -> new ObjectNotFoundException(String.format("User with ID %d not found", dto.getUserId())));
-    var photo = photoService.search(photoSearchDTO, Pageable.unpaged())
+    var photo = photoService.search(PhotoSearchDTO.builder()
+        .photoId(dto.getPhotoId())
+        .build(), Pageable.unpaged())
       .getContent()
       .stream()
       .findFirst()
-      .map(photoDTO -> modelMapper.map(photoDTO, Photo.class))
+      .map(commonMapper::toPhoto)
       .orElseThrow(() -> new ObjectNotFoundException(String.format("Photo with ID %d not found", dto.getPhotoId())));
     var post = new Post(0L, dto.getContent(), user, new ArrayList<>(), new ArrayList<>(), photo);
-    return modelMapper.map(postRepository.save(post), PostDTO.class);
+    return commonMapper.toPostDTO(postRepository.save(post));
   }
 
   @Override
@@ -67,17 +63,16 @@ public class PostServiceImpl implements PostService {
   public PostDTO update(PostUpdateDTO dto) {
     var post = postRepository.findById(dto.getId())
       .orElseThrow(() -> new ObjectNotFoundException(String.format("Post with ID %d not found", dto.getId())));
-    var photoSearchDTO = PhotoSearchDTO.builder()
-      .photoId(dto.getPhotoId())
-      .build();
-      var photo = photoService.search(photoSearchDTO, Pageable.unpaged())
-        .getContent()
-        .stream()
-        .findFirst()
-        .map(photoDTO -> modelMapper.map(photoDTO, Photo.class))
-        .orElseThrow(()-> new ObjectNotFoundException(String.format("Photo with ID %d not found", dto.getPhotoId())));
-    post.setContent(dto.getContent());
+    var photo = photoService.search(PhotoSearchDTO.builder()
+        .photoId(dto.getPhotoId())
+        .build(), Pageable.unpaged())
+      .getContent()
+      .stream()
+      .findFirst()
+      .map(commonMapper::toPhoto)
+      .orElseThrow(() -> new ObjectNotFoundException(String.format("Photo with ID %d not found", dto.getPhotoId())));
+    commonMapper.updatePostFromDTO(dto, post);
     post.setPhoto(photo);
-    return modelMapper.map(postRepository.save(post), PostDTO.class);
+    return commonMapper.toPostDTO(postRepository.save(post));
   }
 }

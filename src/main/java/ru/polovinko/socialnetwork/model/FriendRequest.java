@@ -21,5 +21,5 @@ public class FriendRequest {
   @JoinColumn(name = "recipient_id")
   private User recipient;
   @Enumerated(EnumType.STRING)
-  private FriendshipStatus status;
+  private FriendshipStatus requestStatus;
 }
